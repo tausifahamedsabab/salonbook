@@ -1,7 +1,3 @@
-'use client';
-
-import { useSyncExternalStore } from 'react';
-
 export interface AppUser {
   userId: string;
   name: string;
@@ -50,6 +46,7 @@ function decodeTokenPayload(token: string): AppUser | null {
 }
 
 function readSession(): Session | null {
+  if (!isBrowser()) return null;
   try {
     const token = window.localStorage.getItem(TOKEN_KEY);
     const userJson = window.localStorage.getItem(USER_KEY);
@@ -68,24 +65,26 @@ function readSession(): Session | null {
   return null;
 }
 
-let session: Session | null = isBrowser() ? readSession() : null;
+let cachedSession: Session | null | undefined;
+
+/**
+ * Returns the current session (token + user). The result is cached so it is a
+ * stable reference between reads.
+ */
+export function getSession(): Session | null {
+  if (cachedSession === undefined) cachedSession = readSession();
+  return cachedSession;
+}
+
 const listeners = new Set<() => void>();
 
 function notify(): void {
   listeners.forEach((listener) => listener());
 }
 
-function getSessionSnapshot(): Session | null {
-  return session;
-}
-
-export function getSession(): Session | null {
-  return session;
-}
-
 export function setSession(next: Session): void {
   if (!isBrowser()) return;
-  session = next;
+  cachedSession = next;
   try {
     window.localStorage.setItem(TOKEN_KEY, next.token);
     window.localStorage.setItem(USER_KEY, JSON.stringify({ ...next.user, userId: next.user.userId }));
@@ -104,7 +103,7 @@ export function setSession(next: Session): void {
 
 export function clearSession(): void {
   if (!isBrowser()) return;
-  session = null;
+  cachedSession = null;
   try {
     window.localStorage.removeItem(TOKEN_KEY);
     window.localStorage.removeItem(USER_KEY);
@@ -116,24 +115,19 @@ export function clearSession(): void {
 }
 
 export function isLoggedIn(): boolean {
-  return session !== null;
+  return getSession() !== null;
 }
 
 export function isAdmin(): boolean {
-  return session?.user.role === 'admin';
+  return getSession()?.user.role === 'admin';
 }
 
-function subscribe(listener: () => void): () => void {
+/**
+ * Subscribes to session changes. Used by session-store.ts (client components).
+ */
+export function subscribe(listener: () => void): () => void {
   listeners.add(listener);
   return () => {
     listeners.delete(listener);
   };
-}
-
-/**
- * Subscribes to session changes. Navbar uses this via useSyncExternalStore so the
- * Navbar content updates immediately whenever authentication state changes.
- */
-export function useSession(): Session | null {
-  return useSyncExternalStore(subscribe, getSessionSnapshot, () => null);
 }

@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { api } from '@/lib/api';
-import { clearSession, useSession } from '@/lib/session';
+import { clearSession } from '@/lib/session';
+import { useSession } from '@/lib/session-store';
 
 export default function Navbar() {
   const router = useRouter();

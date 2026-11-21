@@ -1,4 +1,2 @@
-'use client';
-
-export { getSession, setSession, clearSession, isLoggedIn, isAdmin, useSession } from './session';
+export { getSession, setSession, clearSession, isLoggedIn, isAdmin } from './session';
 export type { AppUser, Session } from './session';
