@@ -1,17 +1,20 @@
-import Link from "next/link";
-import { api, formatMinutes, formatMoney } from "@/lib/api";
-import { getSession } from "@/lib/auth";
-import type { Service } from "@/lib/types";
-import AppointmentRequestForm from "./AppointmentRequestForm";
+import Link from 'next/link';
+import { api, formatMinutes, formatMoney } from '@/lib/api';
+import { getSession } from '@/lib/auth';
+import type { Service } from '@/lib/types';
+import AppointmentRequestForm from './AppointmentRequestForm';
+import RequireAuthentication from '@/components/RequireAuthentication';
 
 export default async function ServiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { service } = await api<{ service: Service }>(`/api/services/${id}`).catch(() => ({
     service: null as Service | null,
   }));
+
   if (!service) {
     return (
       <section className="mx-auto max-w-6xl px-6 py-12">
+        <RequireAuthentication />
         <p className="text-neutral-500">Service not found.</p>
         <Link href="/services" className="text-sm font-medium text-neutral-600 hover:text-neutral-900">
           ← Back to services
@@ -22,6 +25,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
 
   return (
     <section className="mx-auto max-w-6xl px-6 py-12">
+      <RequireAuthentication />
       <Link href="/services" className="text-sm font-medium text-neutral-600 hover:text-neutral-900">
         ← Back to services
       </Link>
@@ -47,9 +51,6 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
 
         <div className="lg:col-span-2">
           <h2 className="text-xl font-bold text-neutral-900">Request an appointment</h2>
-          <p className="mt-1 text-sm text-neutral-500">
-            Choose a date and time, submit your request, then pay from your dashboard once confirmed.
-          </p>
           <AppointmentRequestForm
             serviceId={service._id}
             serviceName={service.name}

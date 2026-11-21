@@ -103,6 +103,9 @@ export default function DashboardPage() {
         <Link href="/customer/payments" className="rounded-full border border-neutral-300 px-5 py-2 text-sm font-medium hover:bg-neutral-50">
           View all payments →
         </Link>
+        <Link href="/customer/profile" className="rounded-full border border-neutral-300 px-5 py-2 text-sm font-medium hover:bg-neutral-50">
+          My Profile
+        </Link>
       </div>
     </section>
   );

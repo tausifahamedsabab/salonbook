@@ -1,17 +1,19 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api';
 import { useAuthGuard } from '@/lib/useAuthGuard';
 import type { Service } from '@/lib/types';
 import ServiceCard from '@/components/ServiceCard';
 
+type SortBy = 'priceLow' | 'priceHigh' | 'name';
+
 export default function ServicesPage() {
   useAuthGuard(null);
-
   const [services, setServices] = useState<Service[]>([]);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
+  const [sortBy, setSortBy] = useState<SortBy>('priceLow');
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(() => {
@@ -31,7 +33,17 @@ export default function ServicesPage() {
     return () => clearTimeout(timer);
   }, [load]);
 
-  const categories = Array.from(new Set(services.map((s) => s.category).filter(Boolean)));
+  const categories = useMemo(
+    () => Array.from(new Set(services.map((s) => s.category).filter((c): c is string => Boolean(c)))),
+    [services]
+  );
+
+  const sorted = useMemo(() => {
+    const list = [...services];
+    if (sortBy === 'priceHigh') return list.sort((a, b) => b.price - a.price);
+    if (sortBy === 'name') return list.sort((a, b) => a.name.localeCompare(b.name));
+    return list.sort((a, b) => a.price - b.price);
+  }, [services, sortBy]);
 
   return (
     <section className="mx-auto max-w-6xl px-6 py-12">
@@ -41,7 +53,7 @@ export default function ServicesPage() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search services..."
+          placeholder="Search services by name..."
           className="rounded-lg border border-neutral-300 px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-neutral-900/20"
         />
         <select
@@ -56,16 +68,26 @@ export default function ServicesPage() {
             </option>
           ))}
         </select>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as SortBy)}
+          className="rounded-lg border border-neutral-300 px-4 py-2.5 text-sm"
+          aria-label="Sort services"
+        >
+          <option value="priceLow">Price (Low → High)</option>
+          <option value="priceHigh">Price (High → Low)</option>
+          <option value="name">Name (A–Z)</option>
+        </select>
       </div>
 
       <div className="mt-8">
         {loading ? (
           <p className="text-neutral-500">Loading…</p>
-        ) : services.length === 0 ? (
+        ) : sorted.length === 0 ? (
           <p className="text-neutral-500">No services match your search.</p>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {services.map((service) => (
+            {sorted.map((service) => (
               <ServiceCard key={service._id} service={service} />
             ))}
           </div>

@@ -29,23 +29,31 @@ export default function AdminDashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const cards = [
-    { label: 'Services', value: stats.services, href: '/admin/services' },
-    { label: 'Appointments', value: stats.appointments, href: '/admin/appointments' },
-    { label: 'Payments', value: stats.payments, href: '/admin/payments' },
-    { label: 'Customers', value: stats.customers, href: '/admin/customers' },
-  ];
-
   return (
     <section className="mx-auto max-w-6xl px-6 py-12">
       <h1 className="text-3xl font-bold tracking-tight text-neutral-900">Admin Dashboard</h1>
+
       <div className="mt-6 grid gap-4 sm:grid-cols-4">
-        {cards.map((c) => (
-          <Link key={c.label} href={c.href} className="rounded-2xl border border-neutral-200 p-5">
-            <p className="text-sm font-medium text-neutral-500">{c.label}</p>
-            <p className="mt-1 text-2xl font-bold text-neutral-900">{loading ? '…' : c.value}</p>
-          </Link>
-        ))}
+        <div className="rounded-2xl border border-neutral-200 p-5">
+          <p className="text-sm font-medium text-neutral-500">Services</p>
+          <p className="mt-1 text-2xl font-bold text-neutral-900">{loading ? '…' : stats.services}</p>
+          <Link href="/admin/services" className="mt-3 inline-block text-sm font-medium text-neutral-900 hover:underline">Manage Services →</Link>
+        </div>
+        <div className="rounded-2xl border border-neutral-200 p-5">
+          <p className="text-sm font-medium text-neutral-500">Appointments</p>
+          <p className="mt-1 text-2xl font-bold text-neutral-900">{loading ? '…' : stats.appointments}</p>
+          <Link href="/admin/appointments" className="mt-3 inline-block text-sm font-medium text-neutral-900 hover:underline">Manage Appointments →</Link>
+        </div>
+        <div className="rounded-2xl border border-neutral-200 p-5">
+          <p className="text-sm font-medium text-neutral-500">Transactions</p>
+          <p className="mt-1 text-2xl font-bold text-neutral-900">{loading ? '…' : stats.payments}</p>
+          <Link href="/admin/payments" className="mt-3 inline-block text-sm font-medium text-neutral-900 hover:underline">View Transactions →</Link>
+        </div>
+        <div className="rounded-2xl border border-neutral-200 p-5">
+          <p className="text-sm font-medium text-neutral-500">Users</p>
+          <p className="mt-1 text-2xl font-bold text-neutral-900">{loading ? '…' : stats.customers}</p>
+          <Link href="/admin/customers" className="mt-3 inline-block text-sm font-medium text-neutral-900 hover:underline">Manage Users →</Link>
+        </div>
       </div>
     </section>
   );

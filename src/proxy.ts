@@ -46,6 +46,11 @@ export function proxy(request: NextRequest) {
     }
   }
 
+  // A logged-in admin can't see the customer area — redirect them to the admin area.
+  if ((pathname === '/customer' || pathname.startsWith('/customer/')) && role === 'admin') {
+    return NextResponse.redirect(new URL('/admin', request.url));
+  }
+
   return NextResponse.next();
 }
 

@@ -33,7 +33,7 @@ export default function AdminCustomersPage() {
   return (
     <section className="mx-auto max-w-6xl px-6 py-12">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold tracking-tight text-neutral-900">Customers</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-neutral-900">Manage Users</h1>
         <Link href="/admin" className="text-sm font-medium text-neutral-600 hover:text-neutral-900">
           ← Admin Dashboard
         </Link>

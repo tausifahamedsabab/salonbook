@@ -100,11 +100,13 @@ It is a beginner-friendly, role-based web application built with:
 
 ```
 src/
-  app/                 # Next.js pages (Home, /services, /services/[id], sign-in/up,
-                       #   customer/*, admin/*)
-  components/          # Navbar, Footer, ServiceCard, StatusBadge
+  app/                 # Next.js pages: Home, /services, /services/[id], sign-in/up,
+                       #   /customer/* (dashboard, appointments, profile, payments),
+                       #   /admin/* (dashboard, services, appointments, users, transactions)
+  components/          # Navbar, Footer, ServiceCard, StatusBadge, RequireAuthentication
   lib/                 # api.ts (fetch helper), session.ts (session store),
-                       #   auth.ts (re-export), useAuthGuard.ts, types.ts
+                       #   session-store.ts (useSession hook), auth.ts (re-export),
+                       #   useAuthGuard.ts, types.ts
   proxy.ts             # server-side route guards (Next 16)
 scripts/
   smoke-test.js        # end-to-end REST API smoke tests
