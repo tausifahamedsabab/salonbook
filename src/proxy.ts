@@ -3,39 +3,38 @@ import { NextResponse, type NextRequest } from 'next/server';
 /**
  * Server-side route guards (Next 16: proxy.ts replaces middleware.ts).
  *
- * The frontend mirrors the session as a `salonbook_user` cookie after login,
- * so protected areas can be checked before rendering.
+ * Better Auth sessions live in cookies (`better_auth.session_token`). The
+ * proxy asks the backend (GET /api/auth/get-session, passing through the
+ * cookie) and guards `/admin/*` and `/customer/*` server-side.
  */
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
 const GUARDED_PREFIXES = ['/admin', '/customer'];
-const COOKIE_NAME = 'salonbook_user';
 
-function readCookie(request: NextRequest, name: string): string | undefined {
-  const value = request.cookies.get(name)?.value;
-  if (!value) return undefined;
+async function getSessionRole(request: NextRequest): Promise<string | undefined> {
   try {
-    return decodeURIComponent(value);
-  } catch {
-    return value;
-  }
-}
-
-function parseRole(cookieValue: string | undefined): string | undefined {
-  if (!cookieValue) return undefined;
-  try {
-    const parsed = JSON.parse(cookieValue);
-    return typeof parsed?.role === 'string' ? parsed.role : undefined;
+    const res = await fetch(`${API_URL}/api/auth/get-session`, {
+      method: 'GET',
+      headers: {
+        'content-type': 'application/json',
+        cookie: request.headers.get('cookie') ?? '',
+      },
+    });
+    const data = await res.json().catch(() => null);
+    const user = data?.user ?? data?.session?.user;
+    return typeof user?.role === 'string' ? user.role : undefined;
   } catch {
     return undefined;
   }
 }
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isGuarded = GUARDED_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(prefix + '/'));
   if (!isGuarded) return NextResponse.next();
 
-  const role = parseRole(readCookie(request, COOKIE_NAME));
+  const role = await getSessionRole(request);
   if (!role) {
     return NextResponse.redirect(new URL('/sign-in', request.url));
   }
@@ -45,7 +44,6 @@ export function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL('/customer/dashboard', request.url));
     }
   }
-
   // A logged-in admin can't see the customer area — redirect them to the admin area.
   if ((pathname === '/customer' || pathname.startsWith('/customer/')) && role === 'admin') {
     return NextResponse.redirect(new URL('/admin', request.url));

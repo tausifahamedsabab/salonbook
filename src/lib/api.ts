@@ -1,5 +1,3 @@
-import { getSession } from './auth';
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 export class ApiError extends Error {
@@ -11,21 +9,19 @@ export class ApiError extends Error {
 }
 
 /**
- * Fetch helper for the Express REST API. Attaches the Bearer token from the
- * current session.
+ * Fetch helper for the Express REST API. Authentication uses cookies
+ * (Better Auth session cookies) — pass `credentials: 'include'`.
  */
 export async function api<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
-  const session = getSession();
   const headers: Record<string, string> = {
     Accept: 'application/json',
     ...((options.headers as Record<string, string>) || {}),
   };
-  if (session?.token) headers['Authorization'] = `Bearer ${session.token}`;
   if (typeof options.body === 'string' && !headers['Content-Type']) {
     headers['Content-Type'] = 'application/json';
   }
 
-  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  const res = await fetch(`${API_URL}${path}`, { ...options, headers, credentials: 'include' });
   let data: { error?: string; [key: string]: unknown } | null = null;
   try {
     data = await res.json();
@@ -39,13 +35,13 @@ export async function api<T = unknown>(path: string, options: RequestInit = {}):
 }
 
 export async function uploadImage(file: File): Promise<{ url: string }> {
-  const session = getSession();
   const formData = new FormData();
-  formData.append('image', file);
-  const headers: Record<string, string> = {};
-  if (session?.token) headers['Authorization'] = `Bearer ${session.token}`;
-
-  const res = await fetch(`${API_URL}/api/services/upload`, { method: 'POST', body: formData, headers });
+  formData.append('file', file);
+  const res = await fetch(`${API_URL}/api/users/avatar`, {
+    method: 'POST',
+    body: formData,
+    credentials: 'include',
+  });
   const data = await res.json().catch(() => null);
   if (!res.ok) {
     throw new ApiError(data?.error || `Upload failed (${res.status})`, res.status);

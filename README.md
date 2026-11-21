@@ -9,9 +9,10 @@ It is a beginner-friendly, role-based web application built with:
 - **Frontend**: Next.js 16 (App Router, Turbopack, TypeScript) — Home, Services (browse/search/filter),
   Service details + appointment request forms, sign in/up, Customer dashboard/appointments/payments,
   and Admin dashboard/services/appointments/payments/customers.
-- **Backend API**: Express.js REST API — JWT authentication (jsonwebtoken + bcryptjs), services
-  (CRUD + category/search + image uploads via ImgBB), appointments (create/list/confirm/cancel),
-  payments (Stripe Checkout), customers (admin view), and a Stripe webhook.
+- **Backend API**: Express.js REST API — [Better Auth](https://www.better-auth.com) authentication
+  (email/password + Google sign-in), services (CRUD + category/search + image uploads via ImgBB),
+  appointments (create/list/confirm/cancel), payments (Stripe Checkout), customers (admin view),
+  and a Stripe webhook.
 - **Database**: MongoDB with Mongoose.
 
 ## Requirements
@@ -36,7 +37,7 @@ It is a beginner-friendly, role-based web application built with:
    - `ADMIN_EMAIL` / `ADMIN_PASSWORD` seed an admin account when the server starts.
    - `STRIPE_SECRET_KEY` / `STRIPE_PUBLISHABLE_KEY` / `STRIPE_WEBHOOK_SECRET` — create test keys at the Stripe dashboard.
    - `IMGBB_API_KEY` — get an API key at [imgbb.com](https://imgbb.com) to upload service images.
-   - `JWT_SECRET` — set a random secret for real deployments.
+   - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — create an OAuth client for Google sign-in (optional).
 
    The backend lives in the separate `C:\projects\salonbook-server` folder; a matching `.env`
    lives there too (`PORT=5000`, `MONGODB_URI=mongodb://127.0.0.1:27017/salonbook`, ...).
@@ -78,10 +79,21 @@ It is a beginner-friendly, role-based web application built with:
 
 ## Architecture notes
 
-- **Auth**: JWTs issued by `server/utils/jwt.js`, stored in localStorage plus a mirror cookie
-  (`salonbook_user`) so Next.js can guard routes server-side.
+- **Auth**: [Better Auth](https://www.better-auth.com) — sessions are stored as cookies
+  (`better_auth.session_token`). The frontend uses `createAuthClient` (`src/lib/auth-client.ts`) and
+  the shared store in `src/lib/session.ts` (`useSession()` hook — Navbar updates immediately on
+  login/logout via `useSyncExternalStore`).
 - **Guards**: `src/proxy.ts` (Next 16 renamed `middleware` → `proxy`) guards `/admin/*` and
-  `/customer/*`; `src/lib/useAuthGuard.ts` provides the same checks for client-side navigation.
+  `/customer/*` — it asks the backend `GET /api/auth/get-session` (passing through the cookie) and
+  redirects unauthenticated or wrongly-roled users. `src/lib/useAuthGuard.ts` provides the same
+  checks for client-side navigation; `useAuthGuard('any')` covers service details pages
+  (redirects unauthenticated users to `/sign-in`).
+- **Role verification on the server**: `server/middleware/auth.js` (`requireAuth` /
+  `requireRole('admin' | 'customer')`) runs on every protected endpoint — hiding links in the
+  frontend is not sufficient.
+- **Roles**: `admin` (seeded from `ADMIN_EMAIL`/`ADMIN_PASSWORD`) and `customer` (public
+  registration). Dashboard areas are role-gated: `/admin/*` (admin only) and `/customer/*`
+  (customer only); admins get redirected from `/customer/*` and customers from `/admin/*`.
 - **Roles**: `admin` and `customer`. Public registration is customer-only unless
   `ALLOW_ADMIN_REGISTRATION=true`. An admin is seeded from `ADMIN_EMAIL`/`ADMIN_PASSWORD`.
 - **Service images**: uploaded as base64 through `POST /api/services/upload` and stored on ImgBB.
@@ -104,19 +116,19 @@ src/
                        #   /customer/* (dashboard, appointments, profile, payments),
                        #   /admin/* (dashboard, services, appointments, users, transactions)
   components/          # Navbar, Footer, ServiceCard, StatusBadge, RequireAuthentication
-  lib/                 # api.ts (fetch helper), session.ts (session store),
-                       #   session-store.ts (useSession hook), auth.ts (re-export),
-                       #   useAuthGuard.ts, types.ts
+  lib/                 # api.ts (fetch helper), session.ts (Better Auth session store),
+                       #   auth-client.ts (Better Auth client), useAuthGuard.ts, types.ts
   proxy.ts             # server-side route guards (Next 16)
 scripts/
   smoke-test.js        # end-to-end REST API smoke tests
 
-# Backend lives in C:\projects\salonbook-server
-models/                # Mongoose: User, Service, Appointment, Payment
-controllers/           # auth, services, appointments, payments, customers
-routes/                # Express routers (auth, services, appointments, payments,
-                       #   customers, webhooks)
-middleware/auth.js     # JWT verification + role checks
+# Backend lives in C:\projects\salonbook-server (server/, models/, controllers/,
+# routes/, middleware/, services/, utils/, seed.js, server.js)
+models/                # Mongoose: Service, Appointment, Payment (users managed by Better Auth)
+controllers/           # services, appointments, payments, customers
+routes/                # Express routers (services, appointments, payments,
+                       #   customers, webhooks, users/avatar)
+middleware/auth.js     # requireAuth + requireRole over Better Auth sessions
 services/imgbb.js, stripe.js
 seed.js                # admin seeding + demo services
 server.js              # Express entry point (port 5000)

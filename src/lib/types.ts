@@ -17,7 +17,7 @@ export interface Appointment {
   serviceId: string;
   serviceName?: string;
   service?: Service | null;
-  customer?: { _id?: string; name?: string; email?: string } | null;
+  customer?: string | null;
   appointmentDate: string;
   notes?: string;
   status: 'pending' | 'confirmed' | 'cancelled';
@@ -37,14 +37,11 @@ export interface Payment {
   updatedAt: string;
 }
 
+/** Better Auth user. `role` is an additional field (server-defined). */
 export interface AppUser {
-  userId: string;
+  id: string;
   name: string;
   email?: string;
-  role: 'admin' | 'customer';
-}
-
-export interface Session {
-  token: string;
-  user: AppUser;
+  image?: string | null;
+  role?: string;
 }

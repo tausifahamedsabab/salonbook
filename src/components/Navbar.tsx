@@ -3,15 +3,14 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { api } from '@/lib/api';
-import { clearSession } from '@/lib/session';
-import { useSession } from '@/lib/session-store';
+import { authClient } from '@/lib/auth-client';
+import type { AppUser } from '@/lib/types';
 
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
-  const session = useSession();
-  const user = session?.user ?? null;
+  const { data: session } = authClient.useSession();
+  const user: AppUser | null = session?.user ?? null;
   const [profileOpen, setProfileOpen] = useState(false);
 
   const isAdminArea = pathname.startsWith('/admin');
@@ -22,9 +21,8 @@ export default function Navbar() {
 
   async function handleLogout() {
     closeProfile();
-    clearSession();
     try {
-      await api('/api/auth/logout', { method: 'POST' });
+      await authClient.signOut();
     } catch {
       // Ignore
     }

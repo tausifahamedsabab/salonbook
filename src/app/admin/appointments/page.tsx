@@ -75,7 +75,7 @@ export default function AdminAppointmentsPage() {
           <tbody>
             {appointments.map((a) => (
               <tr key={a._id} className="border-b border-neutral-200">
-                <td className="py-3 pr-4">{a.customer?.name || a.customerId}</td>
+                <td className="py-3 pr-4">{a.customer || a.customerId}</td>
                 <td className="py-3 pr-4 font-medium text-neutral-900">{a.service?.name || a.serviceName}</td>
                 <td className="py-3 pr-4 text-neutral-500">{formatDateTime(a.appointmentDate)}</td>
                 <td className="py-3 pr-4"><StatusBadge status={a.status} /></td>

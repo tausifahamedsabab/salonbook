@@ -1,33 +1,42 @@
 'use client';
 
-import Link from "next/link";
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
-import { setSession, type Session } from "@/lib/auth";
+import Link from 'next/link';
+import { FormEvent, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { authClient } from '@/lib/auth-client';
 
 export default function SignInPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setError("");
+    setError('');
     setLoading(true);
     try {
-      const session = await api<Session>("/api/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-      });
-      setSession(session);
-      router.push("/customer/dashboard");
+      const response = await authClient.signIn.email({ email, password });
+      const user = (response as { user?: { role?: string } } | null)?.user;
+      router.push(user?.role === 'admin' ? '/admin' : '/customer/dashboard');
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sign-in failed.");
+      setError(err instanceof Error ? err.message : 'Sign-in failed.');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleGoogle() {
+    setError('');
+    try {
+      const response = await authClient.signIn.social({ provider: 'google' });
+      const url = (response as { url?: string } | null)?.url;
+      if (url) {
+        window.location.assign(url);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Google sign-in failed.');
     }
   }
 
@@ -69,7 +78,14 @@ export default function SignInPage() {
             disabled={loading}
             className="w-full rounded-full bg-neutral-900 py-2.5 font-medium text-white transition hover:bg-neutral-700 disabled:opacity-50"
           >
-            {loading ? "Signing in…" : "Sign in"}
+            {loading ? 'Signing in…' : 'Sign in'}
+          </button>
+          <button
+            type="button"
+            onClick={handleGoogle}
+            className="mt-3 w-full rounded-full border border-neutral-300 py-2.5 font-medium text-neutral-700 transition hover:bg-neutral-50"
+          >
+            Continue with Google
           </button>
         </form>
         <p className="mt-5 text-sm text-neutral-500">

@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { api, formatMinutes, formatMoney } from '@/lib/api';
-import { getSession } from '@/lib/auth';
 import type { Service } from '@/lib/types';
 import AppointmentRequestForm from './AppointmentRequestForm';
 import RequireAuthentication from '@/components/RequireAuthentication';
@@ -55,7 +54,6 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
             serviceId={service._id}
             serviceName={service.name}
             price={service.price}
-            signedIn={!!getSession()}
           />
         </div>
       </div>

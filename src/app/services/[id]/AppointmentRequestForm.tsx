@@ -3,16 +3,20 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, formatMoney } from '@/lib/api';
+import { useSession } from '@/lib/session';
+import type { AppUser } from '@/lib/types';
 
-interface Props {
+export default function AppointmentRequestForm({
+  serviceId,
+  serviceName,
+  price,
+}: {
   serviceId: string;
   serviceName: string;
   price: number;
-  signedIn: boolean;
-}
-
-export default function AppointmentRequestForm({ serviceId, serviceName, price, signedIn }: Props) {
+}) {
   const router = useRouter();
+  const user = useSession().data?.user as AppUser | null;
   const [appointmentDate, setAppointmentDate] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
@@ -20,8 +24,8 @@ export default function AppointmentRequestForm({ serviceId, serviceName, price, 
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!signedIn) {
-      setError('Please sign in to request an appointment.');
+    if (user?.role !== 'customer') {
+      setError('Customer appointment requests are not available for admins.');
       return;
     }
     if (!appointmentDate) {
@@ -39,11 +43,25 @@ export default function AppointmentRequestForm({ serviceId, serviceName, price, 
       setNotes('');
       router.push('/customer/appointments');
     } catch (err) {
-      if (err instanceof Error) setError(err.message);
-      else setError('Could not submit your appointment request.');
+      setError(err instanceof Error ? err.message : 'Could not submit your appointment request.');
     } finally {
       setLoading(false);
     }
+  }
+
+  if (user === null) {
+    return (
+      <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-5 text-sm text-neutral-600">
+        Please sign in with your customer account to request an appointment.
+      </div>
+    );
+  }
+  if (user.role !== 'customer') {
+    return (
+      <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-5 text-sm text-neutral-600">
+        Customer appointment requests are not available for admins.
+      </div>
+    );
   }
 
   return (
@@ -75,20 +93,13 @@ export default function AppointmentRequestForm({ serviceId, serviceName, price, 
         />
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
-      <div className="flex items-center gap-4">
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-full bg-neutral-900 px-5 py-2 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:opacity-50"
-        >
-          {loading ? 'Submitting…' : `Request appointment — ${formatMoney(price)}`}
-        </button>
-      </div>
-      {!signedIn && (
-        <p className="text-sm text-neutral-500">
-          You need to be signed in to request an appointment.
-        </p>
-      )}
+      <button
+        type="submit"
+        disabled={loading}
+        className="rounded-full bg-neutral-900 px-5 py-2 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:opacity-50"
+      >
+        {loading ? 'Submitting…' : `Request appointment — ${formatMoney(price)}`}
+      </button>
     </form>
   );
 }
