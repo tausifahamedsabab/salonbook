@@ -38,6 +38,9 @@ It is a beginner-friendly, role-based web application built with:
    - `IMGBB_API_KEY` — get an API key at [imgbb.com](https://imgbb.com) to upload service images.
    - `JWT_SECRET` — set a random secret for real deployments.
 
+   The backend lives in the separate `C:\projects\salonbook-server` folder; a matching `.env`
+   lives there too (`PORT=5000`, `MONGODB_URI=mongodb://127.0.0.1:27017/salonbook`, ...).
+
 4. Start the backend REST API (port 5000):
 
    ```bash
@@ -55,11 +58,11 @@ It is a beginner-friendly, role-based web application built with:
 
 ## Development
 
-- `npm run api` — Express REST API (http://127.0.0.1:5000)
+- `npm run api` — Express REST API (http://127.0.0.1:5000, server code: `C:\projects\salonbook-server`)
 - `npm run dev` — Next.js dev server (http://localhost:3000)
 - `npm run mongo` — zero-config MongoDB on 27017
 - `npm run build` / `npm run start` — production build/start of the Next app
-- `npm run smoke-test` — hmm, no. `node scripts/smoke-test.js` — end-to-end REST API smoke tests
+- `node scripts/smoke-test.js` — end-to-end REST API smoke tests
 - `npm run lint` — lint the project
 
 ## How it works
@@ -100,16 +103,19 @@ src/
   app/                 # Next.js pages (Home, /services, /services/[id], sign-in/up,
                        #   customer/*, admin/*)
   components/          # Navbar, Footer, ServiceCard, StatusBadge
-  lib/                 # api.ts (fetch helper), auth.ts, types.ts, useAuthGuard.ts
+  lib/                 # api.ts (fetch helper), session.ts (session store),
+                       #   auth.ts (re-export), useAuthGuard.ts, types.ts
   proxy.ts             # server-side route guards (Next 16)
-server/
-  models/              # Mongoose: User, Service, Appointment, Payment
-  controllers/         # auth, services, appointments, payments, customers
-  routes/              # Express routers (auth, services, appointments, payments,
-                       #   customers, webhooks)
-  middleware/auth.js   # JWT verification + role checks
-  services/imgbb.js, stripe.js
-  seed.js              # admin seeding + demo services
 scripts/
   smoke-test.js        # end-to-end REST API smoke tests
+
+# Backend lives in C:\projects\salonbook-server
+models/                # Mongoose: User, Service, Appointment, Payment
+controllers/           # auth, services, appointments, payments, customers
+routes/                # Express routers (auth, services, appointments, payments,
+                       #   customers, webhooks)
+middleware/auth.js     # JWT verification + role checks
+services/imgbb.js, stripe.js
+seed.js                # admin seeding + demo services
+server.js              # Express entry point (port 5000)
 ```

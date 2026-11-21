@@ -12,8 +12,7 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // The CommonJS Node.js backend is exempt from Next.js app linting rules.
-    "server/**",
+    // Runtime scripts (dev-only helpers).
     "scripts/**",
   ]),
 ]);
