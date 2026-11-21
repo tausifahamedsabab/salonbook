@@ -5,6 +5,8 @@ const STATUS_CLASSES: Record<string, string> = {
   cancelled: 'bg-red-100 text-red-700',
   failed: 'bg-red-100 text-red-700',
   refunded: 'bg-zinc-100 text-zinc-600',
+  blocked: 'bg-red-100 text-red-700',
+  active: 'bg-emerald-100 text-emerald-700',
 };
 
 export function StatusBadge({ status }: { status: string }) {

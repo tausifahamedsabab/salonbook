@@ -1,51 +1,18 @@
-'use client';
-
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { api, formatDateTime } from '@/lib/api';
-import { useAuthGuard } from '@/lib/useAuthGuard';
+import { serverApi, requireRoleServer } from '@/lib/serverApi';
+import { formatDateTime } from '@/lib/api';
 import type { Appointment } from '@/lib/types';
-import { StatusBadge } from '@/components/StatusBadge';
+import { AppointmentDetailsModal, AppointmentActions } from './AdminAppointments';
 
-export default function AdminAppointmentsPage() {
-  useAuthGuard('admin');
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [error, setError] = useState('');
-  const [loaded, setLoaded] = useState(false);
+export const dynamic = 'force-dynamic';
 
-  async function load() {
-    const { appointments } = await api<{ appointments: Appointment[] }>('/api/appointments');
-    setAppointments(appointments);
-  }
-
-  useEffect(() => {
-    api<{ appointments: Appointment[] }>('/api/appointments')
-      .then((r) => setAppointments(r.appointments))
-      .catch((err: unknown) => {
-        if (err instanceof Error) setError(err.message);
-      })
-      .finally(() => setLoaded(true));
-  }, []);
-
-  async function confirm(id: string) {
-    setError('');
-    try {
-      await api(`/api/appointments/${id}/confirm`, { method: 'PUT' });
-      await load();
-    } catch (err) {
-      if (err instanceof Error) setError(err.message);
-    }
-  }
-
-  async function cancel(id: string) {
-    setError('');
-    try {
-      await api(`/api/appointments/${id}/cancel`, { method: 'PUT' });
-      await load();
-    } catch (err) {
-      if (err instanceof Error) setError(err.message);
-    }
-  }
+export default async function AdminAppointmentsPage() {
+  await requireRoleServer('admin', '/customer/dashboard');
+  const [{ appointments }, { customers }] = await Promise.all([
+    serverApi<{ appointments: Appointment[] }>('/api/appointments'),
+    serverApi<{ customers: Array<{ _id: string; name: string; email?: string }> }>('/api/customers'),
+  ]);
+  const names = new Map(customers.map((c) => [c._id, c.name || c.email || 'Customer']));
 
   return (
     <section className="mx-auto max-w-6xl px-6 py-12">
@@ -55,11 +22,8 @@ export default function AdminAppointmentsPage() {
           ← Admin Dashboard
         </Link>
       </div>
-      {error ? (
-        <p className="mt-4 text-sm text-red-600">{error}</p>
-      ) : !loaded ? (
-        <p className="mt-6 text-neutral-500">Loading…</p>
-      ) : appointments.length === 0 ? (
+
+      {appointments.length === 0 ? (
         <p className="mt-6 text-neutral-500">No appointments yet.</p>
       ) : (
         <table className="mt-6 w-full text-left text-sm">
@@ -75,37 +39,14 @@ export default function AdminAppointmentsPage() {
           <tbody>
             {appointments.map((a) => (
               <tr key={a._id} className="border-b border-neutral-200">
-                <td className="py-3 pr-4">{a.customer || a.customerId}</td>
+                <td className="py-3 pr-4">{names.get(a.customerId || a.customer || '') || (a.customerId || a.customer)}</td>
                 <td className="py-3 pr-4 font-medium text-neutral-900">{a.service?.name || a.serviceName}</td>
                 <td className="py-3 pr-4 text-neutral-500">{formatDateTime(a.appointmentDate)}</td>
-                <td className="py-3 pr-4"><StatusBadge status={a.status} /></td>
+                <td className="py-3 pr-4">
+                  <AppointmentActions appointment={a} />
+                </td>
                 <td className="py-3 pr-4 text-right">
-                  <div className="flex justify-end gap-2">
-                    {a.status === 'pending' && (
-                      <>
-                        <button
-                          onClick={() => confirm(a._id)}
-                          className="rounded-full bg-emerald-600 px-3 py-1 text-xs font-medium text-white hover:bg-emerald-500"
-                        >
-                          Confirm
-                        </button>
-                        <button
-                          onClick={() => cancel(a._id)}
-                          className="rounded-full border border-red-300 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-50"
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    )}
-                    {a.status === 'confirmed' && (
-                      <button
-                        onClick={() => cancel(a._id)}
-                        className="rounded-full border border-red-300 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-50"
-                      >
-                        Cancel
-                      </button>
-                    )}
-                  </div>
+                  <AppointmentDetailsModal appointment={a} customerName={names.get(a.customerId || a.customer || '') || (a.customerId || a.customer || '—')} />
                 </td>
               </tr>
             ))}

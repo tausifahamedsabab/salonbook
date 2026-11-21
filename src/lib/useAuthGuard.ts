@@ -23,6 +23,11 @@ export function useAuthGuard(allowed: 'admin' | 'customer' | 'any' | null) {
       router.replace('/sign-in');
       return;
     }
+    if ((user as AppUser & { blocked?: boolean }).blocked) {
+      try { authClient.signOut(); } catch { /* ignore */ }
+      router.replace('/sign-in');
+      return;
+    }
     if (allowed !== 'any' && user.role !== allowed) {
       router.replace(allowed === 'admin' ? '/customer/dashboard' : '/admin');
     }

@@ -23,7 +23,10 @@ async function getSessionRole(request: NextRequest): Promise<string | undefined>
     });
     const data = await res.json().catch(() => null);
     const user = data?.user ?? data?.session?.user;
-    return typeof user?.role === 'string' ? user.role : undefined;
+    if (!user) return undefined;
+    if (user.blocked) return 'blocked';
+    // Users without a role are customers (Better Auth additionalFields default).
+    return user.role || 'customer';
   } catch {
     return undefined;
   }
@@ -36,6 +39,9 @@ export async function proxy(request: NextRequest) {
 
   const role = await getSessionRole(request);
   if (!role) {
+    return NextResponse.redirect(new URL('/sign-in', request.url));
+  }
+  if (role === 'blocked') {
     return NextResponse.redirect(new URL('/sign-in', request.url));
   }
 

@@ -19,16 +19,21 @@ export interface Appointment {
   service?: Service | null;
   customer?: string | null;
   appointmentDate: string;
+  timeSlot?: string;
   notes?: string;
   status: 'pending' | 'confirmed' | 'cancelled';
+  paymentStatus: 'unpaid' | 'paid' | string;
   requestedAt: string;
 }
 
 export interface Payment {
   _id: string;
   appointmentId: string;
-  customerId: string;
   appointment?: { serviceName?: string; appointmentDate?: string } | null;
+  service?: string | null;
+  serviceId?: string | null;
+  appointmentDate?: string | null;
+  customerId: string;
   amount: number;
   currency: string;
   status: 'pending' | 'paid' | 'refunded' | 'failed';

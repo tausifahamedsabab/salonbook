@@ -1,34 +1,24 @@
-'use client';
-
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { api, formatDateTime } from '@/lib/api';
-import { useAuthGuard } from '@/lib/useAuthGuard';
+import { serverApi, requireRoleServer } from '@/lib/serverApi';
+import { formatDateTime } from '@/lib/api';
+import { CustomerDetailsModal, BlockUserButton } from './AdminCustomers';
 import type { AppUser } from '@/lib/types';
 
 type Customer = AppUser & {
   _id: string;
+  blocked?: boolean;
+  createdAt?: string | null;
   appointmentCount: number;
   pendingCount: number;
   confirmedCount: number;
   paidCount: number;
-  createdAt?: string | null;
 };
 
-export default function AdminCustomersPage() {
-  useAuthGuard('admin');
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [error, setError] = useState('');
-  const [loaded, setLoaded] = useState(false);
+export const dynamic = 'force-dynamic';
 
-  useEffect(() => {
-    api<{ customers: Customer[] }>('/api/customers')
-      .then((r) => setCustomers(r.customers))
-      .catch((err: unknown) => {
-        if (err instanceof Error) setError(err.message);
-      })
-      .finally(() => setLoaded(true));
-  }, []);
+export default async function AdminCustomersPage() {
+  await requireRoleServer('admin', '/customer/dashboard');
+  const { customers } = await serverApi<{ customers: Customer[] }>('/api/customers');
 
   return (
     <section className="mx-auto max-w-6xl px-6 py-12">
@@ -38,11 +28,8 @@ export default function AdminCustomersPage() {
           ← Admin Dashboard
         </Link>
       </div>
-      {error ? (
-        <p className="mt-4 text-sm text-red-600">{error}</p>
-      ) : !loaded ? (
-        <p className="mt-6 text-neutral-500">Loading…</p>
-      ) : customers.length === 0 ? (
+
+      {customers.length === 0 ? (
         <p className="mt-6 text-neutral-500">No customers yet.</p>
       ) : (
         <table className="mt-6 w-full text-left text-sm">
@@ -54,6 +41,7 @@ export default function AdminCustomersPage() {
               <th className="py-3 pr-4 text-right">Pending</th>
               <th className="py-3 pr-4 text-right">Paid</th>
               <th className="py-3 pr-4 text-right">Signed up</th>
+              <th className="py-3 pr-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -64,8 +52,12 @@ export default function AdminCustomersPage() {
                 <td className="py-3 pr-4 text-right">{c.appointmentCount}</td>
                 <td className="py-3 pr-4 text-right">{c.pendingCount}</td>
                 <td className="py-3 pr-4 text-right">{c.paidCount}</td>
-                <td className="py-3 pr-4 text-right text-neutral-500">
-                  {c.createdAt ? formatDateTime(c.createdAt) : '—'}
+                <td className="py-3 pr-4 text-right text-neutral-500">{c.createdAt ? formatDateTime(c.createdAt) : '—'}</td>
+                <td className="py-3 pr-4 text-right">
+                  <div className="flex justify-end gap-2">
+                    <CustomerDetailsModal customer={c} />
+                    <BlockUserButton customer={c} />
+                  </div>
                 </td>
               </tr>
             ))}
