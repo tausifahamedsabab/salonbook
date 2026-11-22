@@ -13,6 +13,7 @@ export function CustomerDashboard({ user, appointments, payments }: { user: AppU
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [cancelledIds, setCancelledIds] = useState<Record<string, boolean>>({});
 
   const paymentByAppointment = new Map(payments.map((p) => [p.appointmentId, p]));
   const summary = {
@@ -28,7 +29,7 @@ export function CustomerDashboard({ user, appointments, payments }: { user: AppU
     try {
       await api(path, { method: 'PUT' });
       showToast('success', 'Appointment cancelled.');
-      setAppointments((prev) => prev.map((a) => (a._id === id ? { ...a, status: 'cancelled' as const } : a)));
+      setCancelledIds((prev) => ({ ...prev, [id]: true }));
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Could not update this appointment.';
       setError(message);
@@ -90,7 +91,7 @@ export function CustomerDashboard({ user, appointments, payments }: { user: AppU
           <p className="mt-4 text-neutral-500">You have no appointments yet.</p>
         ) : (
           <div className="mt-4 space-y-3">
-            {appointments.map((a) => {
+            {appointments.filter((a) => !cancelledIds[a._id]).map((a) => {
               const payment = paymentByAppointment.get(a._id);
               const paymentStatus = payment?.status || 'unpaid';
               return (

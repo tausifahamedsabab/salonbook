@@ -2,18 +2,32 @@ import Link from 'next/link';
 import { serverApi, requireRoleServer } from '@/lib/serverApi';
 import { formatDateTime } from '@/lib/api';
 import type { Appointment } from '@/lib/types';
-import { AppointmentDetailsModal, AppointmentActions, AppointmentFilterTabs } from './AdminAppointments';
-import { PageLoading } from '@/components/PageLoading';
+import { AppointmentDetailsModal, AppointmentActions } from './AdminAppointments';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminAppointmentsPage() {
+const STATUS_TABS = [
+  { key: 'all', label: 'All' },
+  { key: 'pending', label: 'Pending' },
+  { key: 'confirmed', label: 'Confirmed' },
+  { key: 'cancelled', label: 'Cancelled' },
+] as const;
+
+export default async function AdminAppointmentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
   await requireRoleServer('admin', '/customer/dashboard');
-  const [{ appointments }, { customers }] = await Promise.all([
-    serverApi<{ appointments: Appointment[] }>('/api/appointments'),
-    serverApi<{ customers: Array<{ _id: string; name: string; email?: string }> }>('/api/customers'),
-  ]);
-  const names = new Map(customers.map((c) => [c._id, c.name || c.email || 'Customer']));
+  const { status } = await searchParams;
+  const { appointments } = await serverApi<{ appointments: Appointment[] }>('/api/appointments' + (status ? `?status=${status}` : ''));
+
+  const counts = STATUS_TABS.map(({ key }) => ({
+    key,
+    count: appointments.filter((a) => (key === 'all' ? true : a.status === key)).length,
+  }));
+
+  const activeTab = status ?? 'all';
 
   return (
     <section className="mx-auto max-w-6xl px-6 py-12">
@@ -24,8 +38,24 @@ export default async function AdminAppointmentsPage() {
         </Link>
       </div>
 
+      <div className="mt-6 flex flex-wrap gap-2">
+        {counts.map(({ key, count }) => (
+          <Link
+            key={key}
+            href={`/admin/appointments${key === 'all' ? '' : `?status=${key}`}`}
+            className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+              key === activeTab
+                ? 'border-neutral-900 bg-neutral-900 text-white'
+                : 'border-neutral-300 text-neutral-600 hover:bg-neutral-50'
+            }`}
+          >
+            {key[0].toUpperCase() + key.slice(1)} ({count})
+          </Link>
+        ))}
+      </div>
+
       {appointments.length === 0 ? (
-        <p className="mt-6 text-neutral-500">No appointments yet.</p>
+        <p className="mt-6 text-neutral-500">No appointments match this view.</p>
       ) : (
         <table className="mt-6 w-full text-left text-sm">
           <thead>
@@ -40,14 +70,17 @@ export default async function AdminAppointmentsPage() {
           <tbody>
             {appointments.map((a) => (
               <tr key={a._id} className="border-b border-neutral-200">
-                <td className="py-3 pr-4">{names.get(a.customerId || a.customer || '') || (a.customerId || a.customer)}</td>
+                <td className="py-3 pr-4">{a.customer || '—'}</td>
                 <td className="py-3 pr-4 font-medium text-neutral-900">{a.service?.name || a.serviceName}</td>
-                <td className="py-3 pr-4 text-neutral-500">{formatDateTime(a.appointmentDate)}</td>
+                <td className="py-3 pr-4 text-neutral-500">
+                  {formatDateTime(a.appointmentDate)}
+                  {a.timeSlot && <span className="text-neutral-500"> · {a.timeSlot}</span>}
+                </td>
                 <td className="py-3 pr-4">
                   <AppointmentActions appointment={a} />
                 </td>
                 <td className="py-3 pr-4 text-right">
-                  <AppointmentDetailsModal appointment={a} customerName={names.get(a.customerId || a.customer || '') || (a.customerId || a.customer || '—')} />
+                  <AppointmentDetailsModal appointment={a} customerName={a.customer || '—'} />
                 </td>
               </tr>
             ))}

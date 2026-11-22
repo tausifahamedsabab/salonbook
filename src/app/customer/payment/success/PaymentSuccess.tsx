@@ -18,6 +18,7 @@ export function PaymentSuccess({ payment, paymentId }: { payment: Payment; payme
   const [paid, setPaid] = useState(payment.status === 'paid');
   const [current, setCurrent] = useState(payment);
   const [error, setError] = useState('');
+  const [checking, setChecking] = useState(!paid);
 
   useEffect(() => {
     if (paid) return;
@@ -34,9 +35,10 @@ export function PaymentSuccess({ payment, paymentId }: { payment: Payment; payme
         }
       } catch {
         setError('We could not check the payment status right now. Check your dashboard.');
+        setChecking(false);
         clearInterval(timer);
       }
-      if (attempts >= 8) clearInterval(timer);
+      if (attempts >= 8) { setChecking(false); clearInterval(timer); }
     }, 2500);
     return () => clearInterval(timer);
   }, [paymentId, paid, showToast]);

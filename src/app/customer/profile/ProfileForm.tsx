@@ -10,6 +10,7 @@ interface ProfileData {
   _id: string;
   name: string;
   email: string;
+  image?: string | null;
   phone: string;
   role: string;
   blocked: boolean;

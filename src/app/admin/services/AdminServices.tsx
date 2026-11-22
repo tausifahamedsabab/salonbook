@@ -32,7 +32,7 @@ export function ServiceFormModal() {
   const [open, setOpen] = useState(false);
   return (
     <div className="rounded-2xl border border-neutral-200 p-6">
-      {open && <ServiceForm close={() => setOpen(false)} onSaved={() => { setOpen(false); showToast('success', 'Service saved.'); }} service={undefined} />}
+      {open && <ServiceForm close={() => setOpen(false)} onSaved={() => { setOpen(false); }} />}
       {!open && (
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-neutral-900">Add new service</h2>
@@ -101,6 +101,7 @@ export function ServiceRowActions({ service }: { service: Service }) {
 
 /** Client-only component: the actual form (shared by add + edit). */
 function ServiceForm({ close, onSaved, service }: { close: () => void; onSaved: () => void; service?: Service }) {
+  const { showToast } = useToast();
   const [form, setForm] = useState<ServiceForm>(() =>
     service
       ? {
@@ -114,7 +115,6 @@ function ServiceForm({ close, onSaved, service }: { close: () => void; onSaved: 
         }
       : emptyForm
   );
-  const { showToast } = useToast();
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [uploading, setUploading] = useState(false);
