@@ -13,7 +13,6 @@ export async function serverApi<T = unknown>(path: string, sessionCookie?: strin
   const { headers } = await import('next/headers');
   const rawCookie = sessionCookie ?? (await headers()).get('cookie') ?? '';
   const headersToSend: Record<string, string> = rawCookie ? { cookie: rawCookie } : {};
-  if (headersToSend.cookie) trace(`[serverApi] ${path} cookieLen=${headersToSend.cookie.length}`);
   const res = await fetch(`${API_URL}${path}`, { headers: headersToSend, cache: 'no-store' });
   const data = await res.json().catch(() => null);
   if (!res.ok) {
