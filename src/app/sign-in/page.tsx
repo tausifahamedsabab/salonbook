@@ -30,7 +30,9 @@ export default function SignInPage() {
   async function handleGoogle() {
     setError('');
     try {
-      const response = await authClient.signIn.social({ provider: 'google' });
+      // Return the browser to the frontend after Google — otherwise Better Auth
+      // redirects to the backend root, which has no route (404 "Not found").
+      const response = await authClient.signIn.social({ provider: 'google', callbackURL: window.location.origin });
       const url = (response as { url?: string } | null)?.url;
       if (url) {
         window.location.assign(url);
