@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import { api, uploadImage } from '@/lib/api';
+import { useToast } from '@/lib/toast';
 import { Service } from '@/lib/types';
 
 export type { Service };
@@ -31,7 +32,7 @@ export function ServiceFormModal() {
   const [open, setOpen] = useState(false);
   return (
     <div className="rounded-2xl border border-neutral-200 p-6">
-      {open && <ServiceForm close={() => setOpen(false)} onSaved={() => setOpen(false)} />}
+      {open && <ServiceForm close={() => setOpen(false)} onSaved={() => { setOpen(false); showToast('success', 'Service saved.'); }} service={undefined} />}
       {!open && (
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-neutral-900">Add new service</h2>
@@ -51,14 +52,16 @@ export function ServiceFormModal() {
 /** Client-only component: row actions for services — Edit, Activate/Deactivate, Delete. */
 export function ServiceRowActions({ service }: { service: Service }) {
   const [editing, setEditing] = useState(false);
+  const { showToast } = useToast();
   const isActive = service.isActive !== false;
 
   async function setActive(v: boolean) {
     try {
       await api(`/api/services/${service._id}/status`, { method: 'PUT', body: JSON.stringify({ isActive: v }) });
+      showToast('success', service.name + (v ? ' is now active.' : ' is now inactive.'));
       location.reload();
-    } catch {
-      /* backend error message is rare; ignore */
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Update failed.');
     }
   }
 
@@ -66,9 +69,10 @@ export function ServiceRowActions({ service }: { service: Service }) {
     if (!window.confirm('Delete this service?')) return;
     try {
       await api(`/api/services/${service._id}`, { method: 'DELETE' });
+      showToast('success', 'Service deleted.');
       location.reload();
-    } catch {
-      /* ignore */
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Delete failed.');
     }
   }
 
@@ -77,8 +81,8 @@ export function ServiceRowActions({ service }: { service: Service }) {
       {editing && <ServiceForm close={() => setEditing(false)} onSaved={() => setEditing(false)} service={service} />}
       {!editing && (
         <div className="flex justify-end gap-2">
-          <button onClick={() => setEditing(true)} className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
-            Edit
+          <button onClick={() => setEditing(true)} className="inline-flex items-center gap-2 rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-50">
+            {isActive ? 'Edit' : 'View/Edit (inactive)'}
           </button>
           <button
             onClick={() => setActive(!isActive)}
@@ -110,6 +114,7 @@ function ServiceForm({ close, onSaved, service }: { close: () => void; onSaved: 
         }
       : emptyForm
   );
+  const { showToast } = useToast();
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -122,7 +127,9 @@ function ServiceForm({ close, onSaved, service }: { close: () => void; onSaved: 
       setForm((f) => ({ ...f, imageUrl: url }));
       setNotice('Image uploaded.');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Image upload failed.');
+      const message = err instanceof Error ? err.message : 'Image upload failed.';
+      setError(message);
+      showToast('error', message);
     } finally {
       setUploading(false);
     }
@@ -147,11 +154,15 @@ function ServiceForm({ close, onSaved, service }: { close: () => void; onSaved: 
       } else {
         await api('/api/services', { method: 'POST', body: JSON.stringify(payload) });
       }
-      setNotice(service ? 'Service updated.' : 'Service created.');
+      const message = service ? 'Service updated.' : 'Service created.';
+      setNotice(message);
+      showToast('success', message);
       onSaved();
       location.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Save failed.');
+      const message = err instanceof Error ? err.message : 'Save failed.';
+      setError(message);
+      showToast('error', message);
     }
   }
 

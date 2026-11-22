@@ -2,7 +2,8 @@ import Link from 'next/link';
 import { serverApi, requireRoleServer } from '@/lib/serverApi';
 import { formatDateTime } from '@/lib/api';
 import type { Appointment } from '@/lib/types';
-import { AppointmentDetailsModal, AppointmentActions } from './AdminAppointments';
+import { AppointmentDetailsModal, AppointmentActions, AppointmentFilterTabs } from './AdminAppointments';
+import { PageLoading } from '@/components/PageLoading';
 
 export const dynamic = 'force-dynamic';
 

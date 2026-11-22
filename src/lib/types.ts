@@ -38,6 +38,7 @@ export interface Payment {
   currency: string;
   status: 'pending' | 'paid' | 'refunded' | 'failed';
   stripeCheckoutSessionId: string;
+  receiptUrl?: string | null;
   createdAt: string;
   updatedAt: string;
 }

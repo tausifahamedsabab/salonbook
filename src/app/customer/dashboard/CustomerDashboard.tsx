@@ -2,11 +2,14 @@
 
 import { useState } from 'react';
 import { api, formatDateTime, formatMoney, formatShortDate } from '@/lib/api';
+import { Spinner } from '@/components/PageLoading';
+import { useToast } from '@/lib/toast';
 import type { AppUser, Appointment, Payment } from '@/lib/types';
 import { StatusBadge } from '@/components/StatusBadge';
 
 /** Client-only: interactive customer dashboard (cancel, pay, details). */
 export function CustomerDashboard({ user, appointments, payments }: { user: AppUser; appointments: Appointment[]; payments: Payment[] }) {
+  const { showToast } = useToast();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -24,21 +27,30 @@ export function CustomerDashboard({ user, appointments, payments }: { user: AppU
     setError('');
     try {
       await api(path, { method: 'PUT' });
-      window.location.assign('/customer/dashboard');
+      showToast('success', 'Appointment cancelled.');
+      setAppointments((prev) => prev.map((a) => (a._id === id ? { ...a, status: 'cancelled' as const } : a)));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not update this appointment.');
+      const message = err instanceof Error ? err.message : 'Could not update this appointment.';
+      setError(message);
+      showToast('error', message);
     } finally {
       setBusyId(null);
     }
   }
 
   async function pay(id: string) {
+    setBusyId(id);
     setError('');
     try {
       const { url } = await api<{ url: string }>(`/api/payments/checkout/${id}`, { method: 'POST' });
+      showToast('info', 'Redirecting to Stripe…');
       window.location.assign(url);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not start payment.');
+      const message = err instanceof Error ? err.message : 'Could not start payment.';
+      setError(message);
+      showToast('error', message);
+    } finally {
+      setBusyId(null);
     }
   }
 
@@ -139,8 +151,9 @@ export function CustomerDashboard({ user, appointments, payments }: { user: AppU
                         type="button"
                         onClick={() => void action(a._id, `/api/appointments/${a._id}/cancel`)}
                         disabled={busyId === a._id}
-                        className="rounded-full border border-red-300 px-4 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-50 disabled:opacity-50"
+                        className="inline-flex items-center gap-2 rounded-full border border-red-300 px-4 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-50 disabled:opacity-50"
                       >
+                        {busyId === a._id && <Spinner size={12} />}
                         Cancel
                       </button>
                     )}
@@ -149,8 +162,9 @@ export function CustomerDashboard({ user, appointments, payments }: { user: AppU
                         type="button"
                         onClick={() => void pay(a._id)}
                         disabled={busyId === a._id}
-                        className="rounded-full bg-emerald-600 px-4 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-500 disabled:opacity-50"
+                        className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-500 disabled:opacity-50"
                       >
+                        {busyId === a._id && <Spinner size={12} />}
                         Pay now
                       </button>
                     )}

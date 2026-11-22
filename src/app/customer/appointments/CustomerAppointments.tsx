@@ -2,11 +2,14 @@
 
 import { useState } from 'react';
 import { api, formatDateTime } from '@/lib/api';
+import { Spinner } from '@/components/PageLoading';
+import { useToast } from '@/lib/toast';
 import type { Appointment } from '@/lib/types';
 import { StatusBadge } from '@/components/StatusBadge';
 
 /** Client-only: interactive customer appointment list (Pay, Cancel). */
 export function CustomerAppointments({ appointments: initial }: { appointments: Appointment[] }) {
+  const { showToast } = useToast();
   const [appointments, setAppointments] = useState(initial);
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -16,21 +19,30 @@ export function CustomerAppointments({ appointments: initial }: { appointments: 
     setError('');
     try {
       await api(path, { method: 'PUT' });
+      showToast('success', 'Appointment cancelled.');
       setAppointments((prev) => prev.map((a) => (a._id === id ? { ...a, status: 'cancelled' as const } : a)));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Action failed.');
+      const message = err instanceof Error ? err.message : 'Action failed.';
+      setError(message);
+      showToast('error', message);
     } finally {
       setBusyId(null);
     }
   }
 
   async function pay(id: string) {
+    setBusyId(id);
     setError('');
     try {
       const { url } = await api<{ url: string }>(`/api/payments/checkout/${id}`, { method: 'POST' });
+      showToast('info', 'Redirecting to Stripe…');
       window.location.assign(url);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not start payment.');
+      const message = err instanceof Error ? err.message : 'Could not start payment.';
+      setError(message);
+      showToast('error', message);
+    } finally {
+      setBusyId(null);
     }
   }
 

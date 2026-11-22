@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { api, formatDateTime, formatMoney } from '@/lib/api';
+import { api, formatDateTime, formatMoney, formatShortDate } from '@/lib/api';
+import { useToast } from '@/lib/toast';
 import type { Appointment } from '@/lib/types';
 import { StatusBadge } from '@/components/StatusBadge';
 
 /** Client-only: Confirm / Cancel actions for admin appointment requests. */
 export function AppointmentActions({ appointment }: { appointment: Appointment }) {
+  const { showToast } = useToast();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -15,8 +17,12 @@ export function AppointmentActions({ appointment }: { appointment: Appointment }
     setError('');
     try {
       await api(path, { method });
+      const done = method === 'PUT' && path.endsWith('/confirm') ? 'Appointment confirmed.' : 'Appointment cancelled.';
+      showToast('success', done);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Action failed.');
+      const message = err instanceof Error ? err.message : 'Action failed.';
+      setError(message);
+      showToast('error', message);
     } finally {
       setBusy(false);
     }

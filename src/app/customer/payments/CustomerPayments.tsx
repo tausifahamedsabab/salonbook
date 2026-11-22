@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { formatDateTime, formatMoney } from '@/lib/api';
 import type { Payment } from '@/lib/types';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -7,6 +8,12 @@ export function CustomerPayments({ payments }: { payments: Payment[] }) {
   return (
     <section className="mx-auto max-w-6xl px-6 py-12">
       <h1 className="text-3xl font-bold tracking-tight text-neutral-900">Payment History</h1>
+      <p className="mt-1 text-sm text-neutral-500">
+        {payments.length === 0 ? 'You have no payments yet.' : `${payments.length} ${payments.length === 1 ? 'transaction' : 'transactions'}`}
+      </p>
+      <div className="mt-4 flex justify-end">
+        <Link href="/customer/dashboard" className="text-sm font-medium text-neutral-900 underline">← Back to dashboard</Link>
+      </div>
 
       {payments.length === 0 ? (
         <p className="mt-6 text-neutral-500">You have no payments yet.</p>
