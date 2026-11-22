@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useToast, type ToastItem } from '@/lib/toast';
 
 const STYLES: Record<ToastItem['type'], string> = {
@@ -13,9 +12,6 @@ const STYLES: Record<ToastItem['type'], string> = {
 /** Fixed top-right toast list. Auto-dismisses via the provider timeout. */
 export function Toaster() {
   const { toasts } = useToast();
-
-  // Reconcile: close toasts that have been replaced by newer ones is not
-  // necessary — the provider already bounds the list.
 
   return (
     <div aria-live="polite" className="pointer-events-none fixed right-4 top-4 z-50 flex flex-col items-end gap-2 sm:right-6">

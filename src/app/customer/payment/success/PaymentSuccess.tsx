@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { api, formatMoney, formatShortDate } from '@/lib/api';
 import { PageLoading, Spinner } from '@/components/PageLoading';
 import { useToast } from '@/lib/toast';
@@ -49,14 +50,14 @@ export function PaymentSuccess({ payment, paymentId }: { payment: Payment; payme
         <h1 className="text-2xl font-bold text-emerald-800">Payment confirmed!</h1>
         <p className="mt-3 text-emerald-700">Thank you — your appointment is now confirmed.</p>
         {current.receiptUrl && (
-          <a
+          <Link
             href={current.receiptUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-2 inline-block text-sm font-medium text-neutral-900 underline"
           >
             View your receipt
-          </a>
+          </Link>
         )}
         <dl className="mt-5 text-left text-sm text-neutral-700">
           <div className="flex justify-between gap-4">
@@ -77,12 +78,12 @@ export function PaymentSuccess({ payment, paymentId }: { payment: Payment; payme
           </div>
         </dl>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <a href="/customer/dashboard" className="rounded-full bg-neutral-900 px-5 py-2 text-sm font-medium text-white transition hover:bg-neutral-700">
+          <Link href="/customer/dashboard" className="rounded-full bg-neutral-900 px-5 py-2 text-sm font-medium text-white transition hover:bg-neutral-700">
             Back to dashboard
-          </a>
-          <a href="/services" className="rounded-full border border-neutral-300 px-5 py-2 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50">
+          </Link>
+          <Link href="/services" className="rounded-full border border-neutral-300 px-5 py-2 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50">
             Book another service
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -98,9 +99,9 @@ export function PaymentSuccess({ payment, paymentId }: { payment: Payment; payme
           <h2 className="mt-4 text-xl font-bold text-neutral-900">Still waiting…</h2>
           <p className="mt-2 text-sm text-neutral-500">Your appointment payment is completing in Stripe.</p>
           {error && <p className="mt-4 text-sm text-amber-700">{error}</p>}
-          <a href="/customer/dashboard" className="mt-5 inline-block text-sm font-medium text-neutral-900 underline">
+          <Link href="/customer/dashboard" className="mt-5 inline-block text-sm font-medium text-neutral-900 underline">
             Check your dashboard instead
-          </a>
+          </Link>
         </>
       )}
     </div>

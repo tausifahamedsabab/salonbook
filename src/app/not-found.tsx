@@ -5,7 +5,7 @@ export default function NotFound() {
   return (
     <section className="mx-auto flex min-h-[60vh] flex-col items-center justify-center gap-4 px-6 py-12 text-center">
       <h1 className="text-3xl font-bold tracking-tight text-neutral-900">404 — Page not found</h1>
-      <p className="text-neutral-500">This page doesn't exist or may have been removed.</p>
+      <p className="text-neutral-500">This page doesn&#x27;t exist or may have been removed.</p>
       <div className="flex gap-2">
         <Link href="/" className="rounded-full bg-neutral-900 px-5 py-2 text-sm font-medium text-white hover:bg-neutral-700">
           Back to home
