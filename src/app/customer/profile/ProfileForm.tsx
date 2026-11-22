@@ -13,7 +13,7 @@ interface ProfileData {
   image?: string | null;
   phone: string;
   role: string;
-  blocked: boolean;
+  isBlocked: boolean;
   createdAt?: string;
 }
 
@@ -131,7 +131,7 @@ export function ProfileForm({ profile }: { profile: ProfileData }) {
       <div className="mt-6 text-sm text-neutral-500">
         <p>Email: {profile.email || '—'}</p>
         <p className="mt-1">Role: <span className="capitalize">{profile.role}</span> (read-only)</p>
-        <p className="mt-1">Account status: <span className={profile.blocked ? 'text-red-600' : 'text-emerald-600'}>{profile.blocked ? 'Blocked' : 'Active'}</span> (read-only)</p>
+        <p className="mt-1">Account status: <span className={profile.isBlocked ? 'text-red-600' : 'text-emerald-600'}>{profile.isBlocked ? 'Blocked' : 'Active'}</span> (read-only)</p>
         {profile.createdAt && <p className="mt-1">Signed up: {new Date(profile.createdAt).toLocaleDateString()}</p>}
       </div>
 

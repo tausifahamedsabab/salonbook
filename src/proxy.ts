@@ -24,7 +24,7 @@ async function getSessionRole(request: NextRequest): Promise<string | undefined>
     const data = await res.json().catch(() => null);
     const user = data?.user ?? data?.session?.user;
     if (!user) return undefined;
-    if (user.blocked) return 'blocked';
+    if (user.isBlocked) return 'blocked';
     // Users without a role are customers (Better Auth additionalFields default).
     return user.role || 'customer';
   } catch {

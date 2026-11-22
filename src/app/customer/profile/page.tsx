@@ -14,7 +14,7 @@ interface ProfileData {
   email: string;
   phone: string;
   role: string;
-  blocked: boolean;
+  isBlocked: boolean;
   createdAt?: string;
 }
 

@@ -103,7 +103,7 @@ export function CustomerDashboard({ user, appointments, payments }: { user: AppU
                         {a.service?.category ? `${a.service.category} · ` : ''}
                         {formatDateTime(a.appointmentDate)}
                       </p>
-                      {a.notes && <p className="mt-1 text-sm text-neutral-600">Notes: {a.notes}</p>}
+                      {a.message && <p className="mt-1 text-sm text-neutral-600">Notes: {a.message}</p>}
                     </div>
                     <div className="flex items-center gap-3">
                       <StatusBadge status={a.status} />
@@ -117,8 +117,8 @@ export function CustomerDashboard({ user, appointments, payments }: { user: AppU
                       </button>
                     </div>
                   </div>
-                  {a.service?.imageUrl && (
-                    <img src={a.service.imageUrl} alt={a.service.name} className="mt-3 h-12 rounded-lg object-cover" />
+                  {a.service?.image && (
+                    <img src={a.service.image} alt={a.service.name} className="mt-3 h-12 rounded-lg object-cover" />
                   )}
                   {expandedId === a._id && (
                     <dl className="mt-3 space-y-2 text-sm text-neutral-600">

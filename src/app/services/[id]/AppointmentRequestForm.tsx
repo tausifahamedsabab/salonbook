@@ -24,7 +24,7 @@ export default function AppointmentRequestForm({
   const user = data?.user as { role?: string } | null;
   const [appointmentDate, setAppointmentDate] = useState('');
   const [timeSlot, setTimeSlot] = useState(TIME_SLOTS[0]);
-  const [notes, setNotes] = useState('');
+  const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -39,11 +39,11 @@ export default function AppointmentRequestForm({
     try {
       await api('/api/appointments', {
         method: 'POST',
-        body: JSON.stringify({ serviceId, appointmentDate: `${appointmentDate}T${timeSlot}`, timeSlot, notes }),
+        body: JSON.stringify({ serviceId, appointmentDate: `${appointmentDate}T${timeSlot}`, timeSlot, message }),
       });
       showToast('success', `Appointment request sent for ${serviceName}!`);
       setAppointmentDate('');
-      setNotes('');
+      setMessage('');
       router.push('/customer/appointments');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Could not submit your appointment request.';
@@ -103,8 +103,8 @@ export default function AppointmentRequestForm({
         <label htmlFor="appointment-notes" className="block text-sm font-medium text-neutral-700">Additional message (optional)</label>
         <textarea
           id="appointment-notes"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
           placeholder={`Anything to share about ${serviceName}?`}
           rows={3}
           className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"

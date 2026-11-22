@@ -23,7 +23,7 @@ export function useAuthGuard(allowed: 'admin' | 'customer' | 'any' | null) {
       router.replace('/sign-in');
       return;
     }
-    if ((user as AppUser & { blocked?: boolean }).blocked) {
+    if ((user as AppUser & { isBlocked?: boolean }).isBlocked) {
       try { authClient.signOut(); } catch { /* ignore */ }
       router.replace('/sign-in');
       return;

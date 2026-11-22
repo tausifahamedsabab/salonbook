@@ -6,7 +6,7 @@ import type { AppUser } from '@/lib/types';
 
 type Customer = AppUser & {
   _id: string;
-  blocked?: boolean;
+  isBlocked?: boolean;
   createdAt?: string | null;
   appointmentCount: number;
   pendingCount: number;

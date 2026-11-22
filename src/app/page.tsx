@@ -13,7 +13,7 @@ export default async function Home() {
   let services: Service[] = [];
   try {
     const { services: all } = await api<{ services: Service[] }>('/api/services');
-    services = all.filter((service) => service.isActive !== false);
+    services = all.filter((service) => service.status !== 'inactive');
   } catch {
     services = [];
   }

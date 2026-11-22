@@ -21,12 +21,13 @@ export default function ServicesPage() {
     const params = new URLSearchParams();
     if (search) params.set('search', search);
     if (category) params.set('category', category);
+    params.set('sort', sortBy);
     const query = params.toString();
     api<{ services: Service[] }>(`/api/services${query ? `?${query}` : ''}`)
       .then(({ services }) => setServices(services))
       .catch(() => setServices([]))
       .finally(() => setLoading(false));
-  }, [search, category]);
+  }, [search, category, sortBy]);
 
   useEffect(() => {
     const timer = setTimeout(load, 250);
@@ -38,12 +39,8 @@ export default function ServicesPage() {
     [services]
   );
 
-  const sorted = useMemo(() => {
-    const list = [...services];
-    if (sortBy === 'priceHigh') return list.sort((a, b) => b.price - a.price);
-    if (sortBy === 'name') return list.sort((a, b) => a.name.localeCompare(b.name));
-    return list.sort((a, b) => a.price - b.price);
-  }, [services, sortBy]);
+  // Server-side sorting via ?sort= param; the select still re-fetches with it.
+  const sorted = services;
 
   return (
     <section className="mx-auto max-w-6xl px-6 py-12">

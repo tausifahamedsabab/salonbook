@@ -44,15 +44,15 @@ export default async function AdminPaymentsPage() {
           <tbody>
             {payments.map((p) => (
               <tr key={p._id} className="border-b border-neutral-200">
-                <td className="py-3 pr-4 text-neutral-900">{p.customerId || '—'}</td>
-                <td className="py-3 pr-4 text-neutral-900">{p.service || p.appointment?.serviceName || '—'}</td>
+                <td className="py-3 pr-4 text-neutral-900">{p.customerId?.toString?.() || '—'}</td>
+                <td className="py-3 pr-4 text-neutral-900">{p.service || '—'}</td>
                 <td className="py-3 pr-4 text-neutral-500">
-                  {p.appointment?.appointmentDate ? formatDateTime(p.appointment.appointmentDate) : formatDateTime(p.createdAt)}
+                  {formatDateTime(p.appointmentDate || p.createdAt)}
                 </td>
                 <td className="py-3 pr-4 text-right font-semibold text-neutral-900">{formatMoney(p.amount)}</td>
                 <td className="py-3 pr-4 text-right text-neutral-500">{(p.currency || 'usd').toUpperCase()}</td>
                 <td className="py-3 pr-4 text-right"><StatusBadge status={p.status} /></td>
-                <td className="py-3 pr-4 text-xs text-neutral-500">{shortSessionId(p.stripeCheckoutSessionId)}</td>
+                <td className="py-3 pr-4 text-xs text-neutral-500">{shortSessionId(p.stripeSessionId)}</td>
                 <td className="py-3 pr-4 text-neutral-500">{formatDateTime(p.createdAt)}</td>
               </tr>
             ))}

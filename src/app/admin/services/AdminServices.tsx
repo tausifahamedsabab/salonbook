@@ -12,9 +12,9 @@ interface ServiceForm {
   description: string;
   category: string;
   price: string;
-  durationMinutes: string;
-  imageUrl: string;
-  isActive: boolean;
+  duration: string;
+  image: string;
+  status: 'active' | 'inactive';
 }
 
 const emptyForm: ServiceForm = {
@@ -22,9 +22,9 @@ const emptyForm: ServiceForm = {
   description: '',
   category: 'general',
   price: '',
-  durationMinutes: '60',
-  imageUrl: '',
-  isActive: true,
+  duration: '60',
+  image: '',
+  status: 'active',
 };
 
 /** Client-only component: the add/edit form for services (Admin Services page). */
@@ -53,12 +53,12 @@ export function ServiceFormModal() {
 export function ServiceRowActions({ service }: { service: Service }) {
   const [editing, setEditing] = useState(false);
   const { showToast } = useToast();
-  const isActive = service.isActive !== false;
+  const isActive = service.status !== 'inactive';
 
-  async function setActive(v: boolean) {
+  async function setStatus(v: 'active' | 'inactive') {
     try {
-      await api(`/api/services/${service._id}/status`, { method: 'PUT', body: JSON.stringify({ isActive: v }) });
-      showToast('success', service.name + (v ? ' is now active.' : ' is now inactive.'));
+      await api(`/api/services/${service._id}/status`, { method: 'PUT', body: JSON.stringify({ status: v }) });
+      showToast('success', service.name + (v === 'active' ? ' is now active.' : ' is now inactive.'));
       location.reload();
     } catch (err) {
       showToast('error', err instanceof Error ? err.message : 'Update failed.');
@@ -85,7 +85,7 @@ export function ServiceRowActions({ service }: { service: Service }) {
             {isActive ? 'Edit' : 'View/Edit (inactive)'}
           </button>
           <button
-            onClick={() => setActive(!isActive)}
+            onClick={() => void setStatus(isActive ? 'inactive' : 'active')}
             className="rounded-full border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
           >
             {isActive ? 'Deactivate' : 'Activate'}
@@ -109,9 +109,9 @@ function ServiceForm({ close, onSaved, service }: { close: () => void; onSaved: 
           description: service.description || '',
           category: service.category || 'general',
           price: String(service.price ?? ''),
-          durationMinutes: String(service.durationMinutes ?? ''),
-          imageUrl: service.imageUrl || '',
-          isActive: service.isActive !== false,
+          duration: String(service.duration ?? ''),
+          image: service.image || '',
+          status: service.status || 'active',
         }
       : emptyForm
   );
@@ -124,7 +124,7 @@ function ServiceForm({ close, onSaved, service }: { close: () => void; onSaved: 
     setUploading(true);
     try {
       const { url } = await uploadImage(file);
-      setForm((f) => ({ ...f, imageUrl: url }));
+      setForm((f) => ({ ...f, image: url }));
       setNotice('Image uploaded.');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Image upload failed.';
@@ -145,9 +145,9 @@ function ServiceForm({ close, onSaved, service }: { close: () => void; onSaved: 
         description: form.description,
         category: form.category || 'general',
         price: Number(form.price),
-        durationMinutes: Number(form.durationMinutes) || 60,
-        imageUrl: form.imageUrl,
-        isActive: form.isActive,
+        duration: Number(form.duration) || 60,
+        image: form.image,
+        status: form.status,
       };
       if (service) {
         await api(`/api/services/${service._id}`, { method: 'PUT', body: JSON.stringify(payload) });
@@ -201,8 +201,8 @@ function ServiceForm({ close, onSaved, service }: { close: () => void; onSaved: 
             type="number"
             min={1}
             step={1}
-            value={form.durationMinutes}
-            onChange={(e) => setForm({ ...form, durationMinutes: e.target.value })}
+            value={form.duration}
+            onChange={(e) => setForm({ ...form, duration: e.target.value })}
             required
             className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
           />
@@ -250,21 +250,24 @@ function ServiceForm({ close, onSaved, service }: { close: () => void; onSaved: 
           </label>
           {uploading && <span className="text-sm text-neutral-500">Uploading…</span>}
         </div>
-        {form.imageUrl && (
+        {form.image && (
           <>
-            <img src={form.imageUrl} alt={form.name || 'service image'} className="mt-3 h-20 rounded-lg border border-neutral-200 object-cover" />
-            <p className="mt-1 text-xs text-neutral-500">{form.imageUrl}</p>
+            <img src={form.image} alt={form.name || 'service image'} className="mt-3 h-20 rounded-lg border border-neutral-200 object-cover" />
+            <p className="mt-1 text-xs text-neutral-500">{form.image}</p>
           </>
         )}
       </div>
-      <label className="flex items-center gap-2 text-sm font-medium text-neutral-700">
-        <input
-          type="checkbox"
-          checked={form.isActive}
-          onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-        />
-        Service Status: {form.isActive ? 'Active' : 'Inactive'} (Active = visible in catalog)
-      </label>
+      <div className="flex items-center gap-2 text-sm font-medium text-neutral-700">
+        <select
+          value={form.status}
+          onChange={(e) => setForm({ ...form, status: e.target.value as 'active' | 'inactive' })}
+          className="h-10 rounded-lg border border-neutral-300 px-3 text-sm"
+        >
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+        <span>{form.status === 'active' ? 'Visible in catalog' : 'Hidden from catalog'}</span>
+      </div>
       <div className="flex gap-3">
         <button
           type="submit"

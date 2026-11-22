@@ -9,7 +9,7 @@ import { StatusBadge } from '@/components/StatusBadge';
 
 type Customer = AppUser & {
   _id: string;
-  blocked?: boolean;
+  isBlocked?: boolean;
   createdAt?: string | null;
   appointmentCount: number;
   pendingCount: number;
@@ -21,7 +21,7 @@ type Customer = AppUser & {
 export function BlockUserButton({ customer }: { customer: Customer }) {
   const router = useRouter();
   const { showToast } = useToast();
-  const isBlocked = customer.blocked === true;
+  const isBlocked = customer.isBlocked === true;
   async function toggle(blocked: boolean) {
     try {
       await api(`/api/customers/${customer._id}/${blocked ? 'block' : 'unblock'}`, { method: 'POST' });
@@ -63,7 +63,7 @@ export function CustomerDetailsModal({ customer }: { customer: Customer }) {
               <Row label="Name" value={customer.name} />
               <Row label="Email" value={customer.email || '—'} />
               <Row label="Role" value={<StatusBadge status={customer.role || 'customer'} />} />
-              <Row label="Account status" value={customer.blocked ? <StatusBadge status="blocked" /> : <StatusBadge status="active" />} />
+              <Row label="Account status" value={customer.isBlocked ? <StatusBadge status="blocked" /> : <StatusBadge status="active" />} />
               <Row label="Booked appointments" value={`${customer.appointmentCount}`} />
               <Row label="Confirmed" value={`${customer.confirmedCount}`} />
               <Row label="Paid" value={`${customer.paidCount}`} />

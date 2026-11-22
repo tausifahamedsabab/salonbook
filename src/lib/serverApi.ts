@@ -21,7 +21,7 @@ export async function serverApi<T = unknown>(path: string, sessionCookie?: strin
   return data as T;
 }
 
-export type SessionUser = AppUser & { role: string; blocked?: boolean };
+export type SessionUser = AppUser & { role: string; isBlocked?: boolean };
 
 /** Current Better Auth session via the Express API, or null when signed out. */
 export async function getServerSession(): Promise<SessionUser | null> {

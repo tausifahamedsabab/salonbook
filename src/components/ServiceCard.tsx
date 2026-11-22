@@ -8,9 +8,9 @@ export default function ServiceCard({ service }: { service: Service }) {
   return (
     <div className="group rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:shadow-md">
       <div className="h-40 overflow-hidden rounded-xl bg-neutral-200">
-        {service.imageUrl ? (
+        {service.image ? (
           <img
-            src={service.imageUrl}
+            src={service.image}
             alt={service.name}
             className="h-full w-full object-cover transition group-hover:scale-[1.03]"
           />
@@ -20,12 +20,12 @@ export default function ServiceCard({ service }: { service: Service }) {
       </div>
       <div className="mt-3">
         <h3 className="text-lg font-semibold text-neutral-900">{service.name}</h3>
-        <p className="mt-1 text-sm text-neutral-500">{service.category}</p>
+        <p className="mt-1 text-sm text-neutral-500">{service.category || '—'}</p>
         {shortDescription ? <p className="mt-2 text-sm text-neutral-600">{shortDescription}</p> : null}
         <div className="mt-3 flex items-center justify-between">
           <p className="text-lg font-semibold text-neutral-900">{formatMoney(service.price)}</p>
-          {service.durationMinutes ? (
-            <p className="text-sm text-neutral-500">{formatMinutes(service.durationMinutes)}</p>
+          {service.duration ? (
+            <p className="text-sm text-neutral-500">{formatMinutes(service.duration)}</p>
           ) : null}
         </div>
         <Link

@@ -75,12 +75,12 @@ export function AppointmentDetailsModal({ appointment, customerName }: { appoint
             <dl className="mt-4 space-y-3 text-sm text-neutral-600">
               <Row label="Customer" value={customerName} />
               <Row label="Service" value={appointment.service?.name || appointment.serviceName} />
-              {appointment.service?.imageUrl && (
-                <img src={appointment.service.imageUrl} alt={appointment.service.name} className="mt-2 h-16 rounded-lg object-cover" />
+              {appointment.service?.image && (
+                <img src={appointment.service.image} alt={appointment.service.name} className="mt-2 h-16 rounded-lg object-cover" />
               )}
               <Row label="Appointment date &amp; time" value={formatDateTime(appointment.appointmentDate)} />
               {appointment.timeSlot && <Row label="Time slot" value={appointment.timeSlot} />}
-              <Row label="Customer message" value={appointment.notes || '(none)'} />
+              <Row label="Customer message" value={appointment.message || '(none)'} />
               <Row label="Service price" value={appointment.service ? formatMoney(appointment.service.price) : '—'} />
               <Row label="Appointment status" value={<StatusBadge status={appointment.status} />} />
               <Row label="Payment status" value={<StatusBadge status={paymentStatus} />} />

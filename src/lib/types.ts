@@ -4,9 +4,9 @@ export interface Service {
   description?: string;
   category?: string;
   price: number;
-  durationMinutes?: number;
-  imageUrl?: string;
-  isActive?: boolean;
+  duration?: number;
+  image?: string;
+  status?: 'active' | 'inactive';
   createdAt?: string;
   updatedAt?: string;
 }
@@ -20,7 +20,9 @@ export interface Appointment {
   customer?: string | null;
   appointmentDate: string;
   timeSlot?: string;
-  notes?: string;
+  message?: string;
+  servicePrice?: number;
+  stripeCheckoutSessionId?: string;
   status: 'pending' | 'confirmed' | 'cancelled';
   paymentStatus: 'unpaid' | 'paid' | string;
   requestedAt: string;
@@ -29,21 +31,29 @@ export interface Appointment {
 export interface Payment {
   _id: string;
   appointmentId: string;
-  appointment?: { serviceName?: string; appointmentDate?: string } | null;
+  customerId: string;
   service?: string | null;
   serviceId?: string | null;
   appointmentDate?: string | null;
+  amount: number;
+  currency: string;
+  status: 'unpaid' | 'paid' | string;
+  stripeSessionId?: string;
+  receiptUrl?: string | null;
+  transaction?: Transaction | null;
+  createdAt: string;
+}
+
+export interface Transaction {
+  _id: string;
+  appointmentId: string;
   customerId: string;
   amount: number;
   currency: string;
-  status: 'pending' | 'paid' | 'refunded' | 'failed';
-  stripeCheckoutSessionId: string;
-  stripePaymentIntentId?: string | null;
-  paymentProvider?: string;
-  receiptUrl?: string | null;
-  paidAt?: string | null;
+  stripeSessionId: string;
+  status: 'paid' | 'failed';
+  receiptUrl?: string;
   createdAt: string;
-  updatedAt: string;
 }
 
 /** Better Auth user. `role` is an additional field (server-defined). */
