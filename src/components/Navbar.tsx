@@ -30,7 +30,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="border-b border-neutral-200 bg-white/80 backdrop-blur">
+    <nav className="border-b border-neutral-200 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link href="/" className="text-2xl font-bold tracking-tight text-neutral-900">
           SalonBook

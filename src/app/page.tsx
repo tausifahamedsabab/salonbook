@@ -24,8 +24,7 @@ export default async function Home() {
   return (
     <section className="mx-auto max-w-6xl px-6 py-12">
       {/* Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-neutral-50 via-white to-neutral-100 text-neutral-900 shadow-2xl">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(192,132,252,0.22),transparent_45%),radial-gradient(circle_at_85%_75%,rgba(129,140,248,0.18),transparent_45%)]" />
+      <div className="relative overflow-hidden rounded-3xl bg-rose-50 border border-neutral-200 text-neutral-900 shadow-2xl">
         <div className="relative flex flex-col items-center justify-center px-6 py-20 text-center lg:py-28">
           <h1 className="max-w-2xl text-4xl font-bold tracking-tight text-neutral-900">
             Book Your Next Salon Appointment
