@@ -1,166 +1,109 @@
 # SalonBook — Salon Appointment Booking Platform
 
-SalonBook lets customers browse salon services, view service details and request appointments online,
-and lets the salon administrator manage services, appointment requests, payments and customers.
-Customers can manage their own appointments and pay for confirmed appointments via Stripe.
+SalonBook lets customers browse salon services, request appointments, track their status and pay for
+confirmed bookings with Stripe. An administrator manages services, appointments, customers and
+payment transactions through a dedicated dashboard.
 
-It is a beginner-friendly, role-based web application built with:
+## Important Features
 
-- **Frontend**: Next.js 16 (App Router, Turbopack, TypeScript) — Home, Services (browse/search/filter),
-  Service details + appointment request forms, sign in/up, Customer dashboard/appointments/payments,
-  and Admin dashboard/services/appointments/payments/customers.
-- **Backend API**: Express.js REST API — [Better Auth](https://www.better-auth.com) authentication
-  (email/password + Google sign-in), services (CRUD + category/search + image uploads via ImgBB),
-  appointments (create/list/confirm/cancel), payments (Stripe Checkout), customers (admin view),
-  and a Stripe webhook.
-- **Database**: MongoDB with Mongoose.
+- **Public**: home page with featured services/categories, service search, category filter and price sorting (`/services`).
+- **Customers**: sign up / sign in (email + Google), book appointments on protected service-detail pages,
+  view/cancel own requests, pay for confirmed appointments, view payment history, edit own profile.
+- **Admin**: manage services (create/update/delete, image upload via ImgBB, activate/deactivate),
+  confirm/cancel appointments, block/unblock customers, read-only transaction records, dashboard statistics.
+- **Auth & security**: Better Auth sessions, server-side role checks on every protected API, JWT verification
+  middleware, blocked-user enforcement, public registration can never create an admin.
+- **Payments**: Stripe Checkout; payment status and transaction records are written only after a verified webhook.
+- **UX**: toast notifications, loading states, responsive salon-themed UI, footer with contact details.
 
-## Requirements
+## Technology Stack
 
-- Node.js ≥ 20
-- A running MongoDB instance (default `mongodb://127.0.0.1:27017/salonbook`)
+- Next.js 16 (App Router, TypeScript, Tailwind CSS)
+- Node.js + Express.js REST API
+- MongoDB (Mongoose) with Better Auth's own auth collections
+- JWT (`jsonwebtoken`), Stripe, ImgBB, Google OAuth
+- Better Auth for email/password and social authentication
 
-## Setup
+## Installation Instructions
 
-1. Install dependencies:
+Requires Node.js ≥ 20 and a MongoDB instance (local or MongoDB Atlas).
 
-   ```bash
-   npm install
-   ```
+```bash
+# Client (Next.js)
+cd salonbook
+npm install
 
-2. Start MongoDB. Two options:
-
-   - No install needed: `npm run mongo` starts a zero-config in-memory MongoDB on `mongodb://127.0.0.1:27017/`.
-   - Use your own instance: point `MONGODB_URI` at it (see `.env`).
-
-3. Copy `.env.example` to `.env` if needed (a `.env` is already present for local development).
-   - `ADMIN_EMAIL` / `ADMIN_PASSWORD` seed an admin account when the server starts.
-   - `STRIPE_SECRET_KEY` / `STRIPE_PUBLISHABLE_KEY` / `STRIPE_WEBHOOK_SECRET` — create test keys at the Stripe dashboard.
-   - `IMGBB_API_KEY` — get an API key at [imgbb.com](https://imgbb.com) to upload service images.
-   - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — create an OAuth client for Google sign-in (optional).
-
-   The backend lives in the separate `C:\projects\salonbook-server` folder; a matching `.env`
-   lives there too (`PORT=5000`, `MONGODB_URI=mongodb://127.0.0.1:27017/salonbook`, ...).
-
-4. Start the backend REST API (port 5000):
-
-   ```bash
-   npm run api
-   ```
-
-5. Start the frontend (port 3000):
-
-   ```bash
-   npm run dev
-   ```
-
-6. Open http://localhost:3000. The seeded admin (`admin@example.com` / `adminsaloonbook1` by default)
-   can sign in to `/admin`. Customers sign up at `/sign-up`.
-
-## Development
-
-- `npm run api` — Express REST API (http://127.0.0.1:5000, server code: `C:\projects\salonbook-server`)
-- `npm run dev` — Next.js dev server (http://localhost:3000)
-- `npm run mongo` — zero-config MongoDB on 27017
-- `npm run build` / `npm run start` — production build/start of the Next app
-- `node scripts/smoke-test.js` — end-to-end REST API smoke tests
-- `npm run lint` — lint the project
-
-## How it works
-
-1. A customer browses `/services`, searches by name, filters by category, or opens a service page.
-   Booking is active-only: inactive services return 404 and duplicate active bookings for the same
-   service + date + time slot return `409`.
-2. On the service page the customer submits the booking form: **Appointment Date**, a predefined
-   **Available Time Slot** (`src/lib/slots.ts`), and an optional **Additional Message**. The
-   appointment is created with status `pending` and payment status `unpaid` (in the `appointments`
-   collection). Customers book via authenticated `POST /api/appointments`.
-3. The admin manages the flow on `/admin/appointments`: view all requests, status-filter tabs
-   (All / Pending / Confirmed / Cancelled), confirm pending appointments, and cancel pending or
-   confirmed appointments. Customer info and message show in the details modal.
-4. The customer opens their appointments on `/customer/appointments` and clicks **Pay now** for
-   confirmed appointments — this creates a Stripe Checkout session (`POST /api/payments/checkout/:id`).
-5. On Stripe, a successful payment triggers the webhook (`POST /api/webhooks/stripe`,
-   `checkout.session.completed`): the payment is marked `paid` and a `Transaction` record is saved
-   (idempotently via `markPaid`). The verify endpoint (`GET /api/payments/:id/verify`) also marks the
-   payment paid from Stripe when the session is complete.
-6. Stripe redirects back to **`/customer/payment/success`** — the success page polls
-   `/api/payments/:id/verify` and shows confirmation with the saved transaction details and a receipt
-   link. Stripe **cancel** returns to **`/customer/payment/cancel`** with a notice.
-7. Customers can also update their profile (`/customer/profile`): name, phone, image upload or URL.
-   Role/blocked changes are rejected server-side; only the user themselves (or admins) may edit.
-8. Admin dashboard stats (`GET /api/admin/stats`): total customers, active services, appointment
-   requests, pending/confirmed, and successful payments. Admin `/admin/customers` supports
-   **Block User / Unblock User** (blocked users get 403 on protected endpoints). Admin
-   `/admin/payments` is read-only — payments cannot be manually edited.
-
-## Architecture notes
-
-- **Auth**: [Better Auth](https://www.better-auth.com) — sessions are stored as cookies
-  (`better_auth.session_token`). The frontend uses `createAuthClient` (`src/lib/auth-client.ts`) and
-  the shared store in `src/lib/session.ts` (`useSession()` hook — Navbar updates immediately on
-  login/logout via `useSyncExternalStore`).
-- **Guards**: `src/proxy.ts` (Next 16 renamed `middleware` → `proxy`) guards `/admin/*` and
-  `/customer/*` — it asks the backend `GET /api/auth/get-session` (passing through the cookie) and
-  redirects unauthenticated or wrongly-roled users. `src/lib/useAuthGuard.ts` provides the same
-  checks for client-side navigation; `useAuthGuard('any')` covers service details pages
-  (redirects unauthenticated users to `/sign-in`).
-- **Hybrid rendering**: admin pages (`/admin/*`) and customer dashboards (`/customer/*`) are
-  **Server Components** that fetch data via `src/lib/serverApi.ts` (forwards the session cookie).
-  Client Components are used only for interactive features: forms, buttons, modals, and tables —
-  with loaders (`src/components/PageLoading.tsx`) on `loading.tsx` files during data fetches.
-- **Role verification on the server**: `server/middleware/auth.js` (`requireAuth` /
-  `requireRole('admin' | 'customer')`) runs on every protected endpoint — hiding links in the
-  frontend is not sufficient. `POST /api/appointments` requires the `customer` role; admins cannot
-  book customer requests.
-- **Roles**: `admin` (seeded from `ADMIN_EMAIL`/`ADMIN_PASSWORD`) and `customer` (public
-  registration). Dashboard areas are role-gated: `/admin/*` (admin only) and `/customer/*`
-  (customer only); admins get redirected from `/customer/*` and customers from `/admin/*`.
-- **Blocked users**: `user.blocked` on the Better Auth `user` collection. `requireAuth` returns 403
-  for blocked users, and the Next `proxy` redirects them to `/sign-in`.
-- **Toasts**: `src/lib/toast.tsx` + `src/components/Toaster.tsx` (global, in `src/app/layout.tsx`).
-  Success/failure toasts via `showToast('success' | 'error' | ...)` — all top forms use them.
-- **Service image uploads**: as base64 via `POST /api/services/upload`, stored on ImgBB.
-- **Service images**: uploaded as base64 through `POST /api/services/upload` and stored on ImgBB.
-- **Data flow**: all frontend fetches use `src/lib/api.ts` against the Express API at
-  `http://localhost:5000` (`NEXT_PUBLIC_API_URL`).
-
-## Ports
-
-| Service | Port |
-| ------- | ---- |
-| Next.js app (frontend) | 3000 |
-| Express API (backend) | 5000 |
-| MongoDB | 27017 |
-
-## Project layout
-
+# Server (Express API)
+cd ../salonbook-server
+npm install
 ```
-src/
-  app/                 # Next.js pages: Home, /services, /services/[id], sign-in/up,
-                       #   /customer/* (dashboard, appointments, profile, payments,
-                       #     payment/success, payment/cancel),
-                       #   /admin/* (dashboard, services, appointments, users, transactions)
-                       #   not-found.tsx (invalid routes)
-  components/          # Navbar, Footer, ServiceCard, StatusBadge, RequireAuthentication,
-                       #   PageLoading, Toaster
-  lib/                 # api.ts (fetch helper), session.ts (Better Auth session store),
-                       #   auth-client.ts, serverApi.ts (server-side fetch + role guards),
-                       #   toast.tsx (toast context), useAuthGuard.ts, slots.ts (time slots)
-  proxy.ts             # server-side route guards (Next 16)
-scripts/
-  smoke-test.js        # end-to-end REST API smoke tests
 
-# Backend lives in C:\projects\salonbook-server (server/, models/, controllers/,
-# routes/, middleware/, services/, utils/, seed.js, server.js)
-models/                # Mongoose: Service, Appointment, Payment, Transaction
-                       #   (users managed by Better Auth)
-controllers/           # services, appointments, payments, transactions, customers, profile,
-                       #   admin stats
-routes/                # Express routers (services, appointments, payments,
-                       #   transactions, customers, webhooks, users/avatar, profiles)
-middleware/auth.js     # requireAuth (rejects blocked users) + requireRole over Better Auth sessions
-services/imgbb.js, stripe.js
-seed.js                # admin seeding + demo services
-server.js              # Express entry point (port 5000)
-```
+Copy the provided `.env.example` files to `.env` in each repository and fill in real values locally.
+`.env` files are gitignored and must never be committed.
+
+## How to Run the Project Locally
+
+1. Start MongoDB. `npm run mongo` in the client starts a zero-config in-memory MongoDB on port 27017,
+   or use your own instance and set `MONGODB_URI`.
+2. Start the API (port 5000): `npm run api` from the client (or `npm start` in `salonbook-server`).
+3. Start the frontend (port 3000): `npm run dev` from the client.
+4. Open http://localhost:3000. The seeded administrator signs in at `/sign-in` using `ADMIN_EMAIL` /
+   `ADMIN_PASSWORD` from the server `.env`. Customers register at `/sign-up`.
+5. Optional checks: `npm run lint`, `npm run build`, `node scripts/smoke-test.js` (needs the server running
+   and admin credentials present in the server `.env`).
+
+## Required Environment Variables (names only — never commit values)
+
+| Variable | Purpose |
+| --- | --- |
+| `PORT` | Express API port (default 5000) |
+| `MONGODB_URI` | MongoDB connection string |
+| `JWT_SECRET` | Secret used to verify backend JWTs |
+| `BETTER_AUTH_SECRET` | Better Auth encryption/signing secret (required in production) |
+| `BETTER_AUTH_URL` | Public base URL of the backend (required in production; falls back to `APP_URL`) |
+| `APP_URL` | Public URL of the frontend — used for CORS, trusted origins and Stripe redirects |
+| `AUTH_COOKIE_CROSS_SITE` | Set to `true` when client and API are on different sites (SameSite=None; Secure) |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Seeded admin account (created once at startup) |
+| `ALLOW_ADMIN_REGISTRATION` | Must remain `false`; public admin registration is disabled |
+| `NEXT_PUBLIC_API_URL` | Backend base URL used by the frontend (required in production) |
+| `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET` | Stripe test-mode credentials |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Publishable key exposed to the browser |
+| `IMGBB_API_KEY` | Image-hosting API key |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URL` | Google OAuth credentials |
+
+## Live Website Link
+
+_Live URL to be added here after deployment._
+
+## Client and Server Repository Links
+
+- Client: https://github.com/tausifahamedsabab/salonbook
+- Server: https://github.com/tausifahamedsabab/salonbook-server
+
+## Deployment Guideline
+
+1. **Database**: provision MongoDB Atlas and allow the backend's IP (or `0.0.0.0/0` for serverless).
+2. **Backend** (Render/Railway/Fly/etc.): deploy `salonbook-server`, set all server variables above, especially
+   `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `APP_URL`, `MONGODB_URI` and the Stripe keys. The service must
+   listen on `PORT` and expose `/health`. The seed creates the admin account on first start.
+3. **Frontend** (Vercel/etc.): deploy `salonbook` with `NEXT_PUBLIC_API_URL` pointing at the deployed backend
+   (no trailing slash). Set `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` for payments.
+4. **Origins/cookies**: set `APP_URL` to the deployed frontend URL so CORS, Better Auth trusted origins and
+   Stripe success/cancel URLs match. If frontend and backend use different sites, set
+   `AUTH_COOKIE_CROSS_SITE=true` and keep all production traffic on HTTPS.
+5. **Stripe webhook**: register `https://<backend>/api/webhooks/stripe` for `checkout.session.completed`,
+   `checkout.session.async_payment_succeeded` and `payment_intent.payment_failed`; set `STRIPE_WEBHOOK_SECRET`
+   to the endpoint signing secret. Never expose it to the client.
+6. **Google OAuth**: add `https://<backend>/api/auth/callback/google` as an authorised redirect URI.
+7. Verify: health endpoint, sign in as admin, customer booking, Stripe test payment, webhook-driven status update,
+   direct refresh of private routes, and logout/login persistence.
+
+## Architecture Notes
+
+- Data lives in four main collections: `user` (Better Auth, with `role` and `isBlocked`), `services`,
+  `appointments` and `transactions`. No duplicate payment collection exists.
+- `src/proxy.ts` (Next 16's replacement for middleware) guards `/admin/*` and `/customer/*` server-side;
+  `src/lib/serverApi.ts` adds role checks for server-rendered pages. The Express middleware
+  (`requireAuth`/`requireRole`, JWT verification) enforces the same rules on the API.
+- Sessions are Better Auth cookies; `src/lib/session.ts` keeps the navbar in sync after login/logout.
+- `src/lib/apiUrl.ts` requires `NEXT_PUBLIC_API_URL` in production so a missing deployment variable fails fast.

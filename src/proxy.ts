@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { getApiUrl } from '@/lib/apiUrl';
 
 /**
  * Server-side route guards (Next 16: proxy.ts replaces middleware.ts).
@@ -8,7 +9,7 @@ import { NextResponse, type NextRequest } from 'next/server';
  * cookie) and guards `/admin/*` and `/customer/*` server-side.
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = getApiUrl();
 
 const GUARDED_PREFIXES = ['/admin', '/customer'];
 

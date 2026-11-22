@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "api": "node ../salonbook-server/server.js",
+    "api": "node ../salonbook-server/server/server.js",
     "mongo": "node scripts/start-mongo.js",
     "build": "next build",
     "start": "next start",

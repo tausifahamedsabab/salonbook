@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 import type { AppUser } from '@/lib/types';
+import { getApiUrl } from '@/lib/apiUrl';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = getApiUrl();
 
 /**
  * Server-side fetch helper for the Express REST API. Runs only during Server
