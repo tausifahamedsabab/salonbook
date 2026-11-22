@@ -43,9 +43,10 @@ export async function getServerSession(): Promise<SessionUser | null> {
  * Server-side role guard for protected dashboard pages: redirects to the
  * fallback href when there is no session or the role is different.
  */
-export async function requireRoleServer(role: 'admin' | 'customer', fallbackHref: string): Promise<SessionUser> {
+export async function requireRoleServer(role: 'admin' | 'customer' | 'any', fallbackHref: string): Promise<SessionUser> {
   const user = await getServerSession();
-  if (!user || user.role !== role) {
+  const roleOk = role === 'any' ? !!user : user?.role === role;
+  if (!user || !roleOk) {
     redirect(fallbackHref);
   }
   return user;

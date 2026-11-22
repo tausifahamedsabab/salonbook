@@ -69,13 +69,30 @@ It is a beginner-friendly, role-based web application built with:
 ## How it works
 
 1. A customer browses `/services`, searches by name, filters by category, or opens a service page.
-2. On the service page they submit an appointment request — an appointment is created with status
-   `pending`, and a `Payment` record (status `pending`) is created for it.
-3. The admin confirms appointments on `/admin/appointments` (`confirmed`).
+   Booking is active-only: inactive services return 404 and duplicate active bookings for the same
+   service + date + time slot return `409`.
+2. On the service page the customer submits the booking form: **Appointment Date**, a predefined
+   **Available Time Slot** (`src/lib/slots.ts`), and an optional **Additional Message**. The
+   appointment is created with status `pending` and payment status `unpaid` (in the `appointments`
+   collection). Customers book via authenticated `POST /api/appointments`.
+3. The admin manages the flow on `/admin/appointments`: view all requests, status-filter tabs
+   (All / Pending / Confirmed / Cancelled), confirm pending appointments, and cancel pending or
+   confirmed appointments. Customer info and message show in the details modal.
 4. The customer opens their appointments on `/customer/appointments` and clicks **Pay now** for
-   confirmed appointments — this creates a Stripe Checkout session.
-5. On the Stripe side, a successful payment marks the payment as `paid` via the Stripe webhook
-   (`POST /api/webhooks/stripe`).
+   confirmed appointments — this creates a Stripe Checkout session (`POST /api/payments/checkout/:id`).
+5. On Stripe, a successful payment triggers the webhook (`POST /api/webhooks/stripe`,
+   `checkout.session.completed`): the payment is marked `paid` and a `Transaction` record is saved
+   (idempotently via `markPaid`). The verify endpoint (`GET /api/payments/:id/verify`) also marks the
+   payment paid from Stripe when the session is complete.
+6. Stripe redirects back to **`/customer/payment/success`** — the success page polls
+   `/api/payments/:id/verify` and shows confirmation with the saved transaction details and a receipt
+   link. Stripe **cancel** returns to **`/customer/payment/cancel`** with a notice.
+7. Customers can also update their profile (`/customer/profile`): name, phone, image upload or URL.
+   Role/blocked changes are rejected server-side; only the user themselves (or admins) may edit.
+8. Admin dashboard stats (`GET /api/admin/stats`): total customers, active services, appointment
+   requests, pending/confirmed, and successful payments. Admin `/admin/customers` supports
+   **Block User / Unblock User** (blocked users get 403 on protected endpoints). Admin
+   `/admin/payments` is read-only — payments cannot be manually edited.
 
 ## Architecture notes
 
@@ -88,14 +105,22 @@ It is a beginner-friendly, role-based web application built with:
   redirects unauthenticated or wrongly-roled users. `src/lib/useAuthGuard.ts` provides the same
   checks for client-side navigation; `useAuthGuard('any')` covers service details pages
   (redirects unauthenticated users to `/sign-in`).
+- **Hybrid rendering**: admin pages (`/admin/*`) and customer dashboards (`/customer/*`) are
+  **Server Components** that fetch data via `src/lib/serverApi.ts` (forwards the session cookie).
+  Client Components are used only for interactive features: forms, buttons, modals, and tables —
+  with loaders (`src/components/PageLoading.tsx`) on `loading.tsx` files during data fetches.
 - **Role verification on the server**: `server/middleware/auth.js` (`requireAuth` /
   `requireRole('admin' | 'customer')`) runs on every protected endpoint — hiding links in the
-  frontend is not sufficient.
+  frontend is not sufficient. `POST /api/appointments` requires the `customer` role; admins cannot
+  book customer requests.
 - **Roles**: `admin` (seeded from `ADMIN_EMAIL`/`ADMIN_PASSWORD`) and `customer` (public
   registration). Dashboard areas are role-gated: `/admin/*` (admin only) and `/customer/*`
   (customer only); admins get redirected from `/customer/*` and customers from `/admin/*`.
-- **Roles**: `admin` and `customer`. Public registration is customer-only unless
-  `ALLOW_ADMIN_REGISTRATION=true`. An admin is seeded from `ADMIN_EMAIL`/`ADMIN_PASSWORD`.
+- **Blocked users**: `user.blocked` on the Better Auth `user` collection. `requireAuth` returns 403
+  for blocked users, and the Next `proxy` redirects them to `/sign-in`.
+- **Toasts**: `src/lib/toast.tsx` + `src/components/Toaster.tsx` (global, in `src/app/layout.tsx`).
+  Success/failure toasts via `showToast('success' | 'error' | ...)` — all top forms use them.
+- **Service image uploads**: as base64 via `POST /api/services/upload`, stored on ImgBB.
 - **Service images**: uploaded as base64 through `POST /api/services/upload` and stored on ImgBB.
 - **Data flow**: all frontend fetches use `src/lib/api.ts` against the Express API at
   `http://localhost:5000` (`NEXT_PUBLIC_API_URL`).
@@ -113,22 +138,28 @@ It is a beginner-friendly, role-based web application built with:
 ```
 src/
   app/                 # Next.js pages: Home, /services, /services/[id], sign-in/up,
-                       #   /customer/* (dashboard, appointments, profile, payments),
+                       #   /customer/* (dashboard, appointments, profile, payments,
+                       #     payment/success, payment/cancel),
                        #   /admin/* (dashboard, services, appointments, users, transactions)
-  components/          # Navbar, Footer, ServiceCard, StatusBadge, RequireAuthentication
+                       #   not-found.tsx (invalid routes)
+  components/          # Navbar, Footer, ServiceCard, StatusBadge, RequireAuthentication,
+                       #   PageLoading, Toaster
   lib/                 # api.ts (fetch helper), session.ts (Better Auth session store),
-                       #   auth-client.ts (Better Auth client), useAuthGuard.ts, types.ts
+                       #   auth-client.ts, serverApi.ts (server-side fetch + role guards),
+                       #   toast.tsx (toast context), useAuthGuard.ts, slots.ts (time slots)
   proxy.ts             # server-side route guards (Next 16)
 scripts/
   smoke-test.js        # end-to-end REST API smoke tests
 
 # Backend lives in C:\projects\salonbook-server (server/, models/, controllers/,
 # routes/, middleware/, services/, utils/, seed.js, server.js)
-models/                # Mongoose: Service, Appointment, Payment (users managed by Better Auth)
-controllers/           # services, appointments, payments, customers
+models/                # Mongoose: Service, Appointment, Payment, Transaction
+                       #   (users managed by Better Auth)
+controllers/           # services, appointments, payments, transactions, customers, profile,
+                       #   admin stats
 routes/                # Express routers (services, appointments, payments,
-                       #   customers, webhooks, users/avatar)
-middleware/auth.js     # requireAuth + requireRole over Better Auth sessions
+                       #   transactions, customers, webhooks, users/avatar, profiles)
+middleware/auth.js     # requireAuth (rejects blocked users) + requireRole over Better Auth sessions
 services/imgbb.js, stripe.js
 seed.js                # admin seeding + demo services
 server.js              # Express entry point (port 5000)

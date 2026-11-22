@@ -4,7 +4,7 @@ import { requireRoleServer } from '@/lib/serverApi';
 export const dynamic = 'force-dynamic';
 
 export default async function PaymentCancelPage() {
-  await requireRoleServer('any', '/sign-in');
+  await requireRoleServer('customer', '/sign-in');
 
   return (
     <section className="mx-auto max-w-2xl px-6 py-12 text-center">

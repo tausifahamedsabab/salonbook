@@ -1,9 +1,9 @@
-import Link from 'next/link';
 import { serverApi, requireRoleServer } from '@/lib/serverApi';
 
 export const dynamic = 'force-dynamic';
 
 export default async function ProfilePage() {
+  await requireRoleServer('any', '/sign-in');
   const { profile } = await serverApi<{ profile: ProfileData }>('/api/users/profile');
   return <ProfileForm profile={profile} />;
 }
