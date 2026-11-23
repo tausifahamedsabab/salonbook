@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Logo } from '@/components/Logo';
 
 function FooterLink({ href, children, className = '' }: { href: string; children: React.ReactNode; className?: string }) {
   return (
@@ -17,9 +18,7 @@ export default function Footer() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Logo and short description */}
           <div className="space-y-4">
-            <Link href="/" className="text-2xl font-bold tracking-tight text-neutral-900">
-              SalonBook
-            </Link>
+            <Logo />
             <p className="text-sm leading-6 text-neutral-500">
               Book your hair, beauty and spa appointments online. Discover your next look.
             </p>
@@ -86,21 +85,21 @@ export default function Footer() {
             <div className="flex items-center gap-3">
               {(
                 [
-                  { href: 'https://facebook.com/salonbook', label: 'Facebook' },
-                  { href: 'https://instagram.com/salonbook', label: 'Instagram' },
-                  { href: 'https://twitter.com/salonbook', label: 'Twitter' },
-                  { href: 'https://linkedin.com/company/salonbook', label: 'LinkedIn' },
+                  { label: 'Facebook', href: 'https://www.facebook.com/' },
+                  { label: 'Instagram', href: 'https://www.instagram.com/' },
+                  { label: 'Twitter', href: 'https://twitter.com/' },
+                  { label: 'LinkedIn', href: 'https://www.linkedin.com/' },
                 ] as const
-              ).map((social) => (
+              ).map(({ label, href }) => (
                 <a
-                  key={social.label}
-                  href={social.href}
+                  key={label}
+                  href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={social.label}
+                  aria-label={label}
                   className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-600 transition hover:border-neutral-900 hover:text-neutral-900"
                 >
-                  {social.label}
+                  {label}
                 </a>
               ))}
             </div>

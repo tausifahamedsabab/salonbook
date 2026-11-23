@@ -1,6 +1,6 @@
 'use client';
 
-/** Inline spinner SVG (no extra deps). */
+/** Inline spinner SVG (no extra deps) — kept for buttons and inline actions. */
 export function Spinner({ size = 20 }: { size?: number }) {
   return (
     <svg
@@ -24,12 +24,35 @@ export function Spinner({ size = 20 }: { size?: number }) {
   );
 }
 
-/** Simple centered loading indicator used by loading.tsx files and suspense states. */
+const shimmer = 'animate-pulse rounded bg-neutral-200';
+
+/**
+ * Skeleton screen used by every loading.tsx during navigation and hard reloads.
+ * Renders a lightweight placeholder of the page structure instead of a spinner.
+ */
 export function PageLoading({ text = 'Loading…' }: { text?: string }) {
   return (
-    <div className="flex items-center justify-center gap-2 py-12 text-neutral-500" role="status" aria-live="polite">
-      <Spinner />
-      <span className="text-sm">{text}</span>
+    <div
+      className="mx-auto w-full max-w-6xl px-6 py-12"
+      role="status"
+      aria-live="polite"
+      aria-label={text}
+    >
+      <div className={`${shimmer} h-9 w-64`} />
+      <div className={`${shimmer} mt-4 h-4 w-96 max-w-full`} />
+
+      <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="rounded-2xl border border-neutral-200 bg-white p-4">
+            <div className={`${shimmer} h-40 w-full rounded-xl`} />
+            <div className={`${shimmer} mt-4 h-4 w-3/4`} />
+            <div className={`${shimmer} mt-2 h-3 w-1/2`} />
+            <div className={`${shimmer} mt-4 h-8 w-24 rounded-full`} />
+          </div>
+        ))}
+      </div>
+
+      <div className="sr-only">{text}</div>
     </div>
   );
 }

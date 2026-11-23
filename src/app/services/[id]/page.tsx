@@ -23,7 +23,7 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
   }
 
   return (
-    <section className="mx-auto max-w-6xl px-6 py-12">
+    <section className="mx-auto max-w-6xl px-6 py-12"> 
       <RequireAuthentication />
       <Link href="/services" className="text-sm font-medium text-neutral-600 hover:text-neutral-900">
         ← Back to services

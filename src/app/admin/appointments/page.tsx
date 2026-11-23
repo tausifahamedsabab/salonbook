@@ -57,35 +57,37 @@ export default async function AdminAppointmentsPage({
       {appointments.length === 0 ? (
         <p className="mt-6 text-neutral-500">No appointments match this view.</p>
       ) : (
-        <table className="mt-6 w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-neutral-200 text-xs uppercase tracking-wide text-neutral-500">
-              <th className="py-3 pr-4">Customer</th>
-              <th className="py-3 pr-4">Service</th>
-              <th className="py-3 pr-4">Date &amp; time</th>
-              <th className="py-3 pr-4">Status</th>
-              <th className="py-3 pr-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {appointments.map((a) => (
-              <tr key={a._id} className="border-b border-neutral-200">
-                <td className="py-3 pr-4">{a.customer || '—'}</td>
-                <td className="py-3 pr-4 font-medium text-neutral-900">{a.service?.name || a.serviceName}</td>
-                <td className="py-3 pr-4 text-neutral-500">
-                  {formatDateTime(a.appointmentDate)}
-                  {a.timeSlot && <span className="text-neutral-500"> · {a.timeSlot}</span>}
-                </td>
-                <td className="py-3 pr-4">
-                  <AppointmentActions appointment={a} />
-                </td>
-                <td className="py-3 pr-4 text-right">
-                  <AppointmentDetailsModal appointment={a} customerName={a.customer || '—'} />
-                </td>
+        <div className="mt-6 overflow-x-auto rounded-xl border border-neutral-200">
+          <table className="w-full min-w-[640px] text-left text-sm">
+            <thead>
+              <tr className="border-b border-neutral-200 text-xs uppercase tracking-wide text-neutral-500">
+                <th className="py-3 pr-4">Customer</th>
+                <th className="py-3 pr-4">Service</th>
+                <th className="py-3 pr-4">Date &amp; time</th>
+                <th className="py-3 pr-4">Status</th>
+                <th className="py-3 pr-4 text-right">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {appointments.map((a) => (
+                <tr key={a._id} className="border-b border-neutral-200">
+                  <td className="py-3 pr-4">{a.customer || '—'}</td>
+                  <td className="py-3 pr-4 font-medium text-neutral-900">{a.service?.name || a.serviceName}</td>
+                  <td className="py-3 pr-4 text-neutral-500">
+                    {formatDateTime(a.appointmentDate)}
+                    {a.timeSlot && <span className="text-neutral-500"> · {a.timeSlot}</span>}
+                  </td>
+                  <td className="py-3 pr-4">
+                    <AppointmentActions appointment={a} />
+                  </td>
+                  <td className="py-3 pr-4 text-right">
+                    <AppointmentDetailsModal appointment={a} customerName={a.customer || '—'} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </section>
   );

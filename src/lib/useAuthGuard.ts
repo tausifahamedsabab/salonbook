@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { authClient } from '@/lib/auth-client';
-import type { AppUser } from '@/lib/types';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
+import type { AppUser } from "@/lib/types";
 
 /**
  * Client-side guard for protected areas. The proxy.ts file also guards these
@@ -12,24 +12,32 @@ import type { AppUser } from '@/lib/types';
  * Roles: 'admin' → /admin area; 'customer' → /customer area; 'any' → any
  * authenticated session (e.g. service details pages).
  */
-export function useAuthGuard(allowed: 'admin' | 'customer' | 'any' | null) {
+export function useAuthGuard(allowed: "admin" | "customer" | "any" | null) {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
   useEffect(() => {
     if (isPending || !allowed) return;
+
     const user: AppUser | null = session?.user ?? null;
+
     if (!user) {
-      router.replace('/sign-in');
+      router.replace("/sign-in");
       return;
     }
-    if ((user as AppUser & { isBlocked?: boolean }).isBlocked) {
-      try { authClient.signOut(); } catch { /* ignore */ }
-      router.replace('/sign-in');
+
+    if ((user as AppUser & { isBlocked?: boolean })?.isBlocked) {
+      try {
+        authClient.signOut();
+      } catch {
+        /* ignore */
+      }
+      router.replace("/sign-in");
       return;
     }
-    if (allowed !== 'any' && user.role !== allowed) {
-      router.replace(allowed === 'admin' ? '/customer/dashboard' : '/admin');
+
+    if (allowed !== "any" && user?.role !== allowed) {
+      router.replace(allowed === "admin" ? "/customer/dashboard" : "/admin");
     }
   }, [allowed, session, isPending, router]);
 }

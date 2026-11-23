@@ -60,7 +60,7 @@ Copy the provided `.env.example` files to `.env` in each repository and fill in 
 | `MONGODB_URI` | MongoDB connection string |
 | `JWT_SECRET` | Secret used to verify backend JWTs |
 | `BETTER_AUTH_SECRET` | Better Auth encryption/signing secret (required in production) |
-| `BETTER_AUTH_URL` | Public base URL of the backend (required in production; falls back to `APP_URL`) |
+| `BETTER_AUTH_URL` | Public base URL of the backend (required in production, no trailing slash; does not fall back to `APP_URL`) |
 | `APP_URL` | Public URL of the frontend — used for CORS, trusted origins and Stripe redirects |
 | `AUTH_COOKIE_CROSS_SITE` | Set to `true` when client and API are on different sites (SameSite=None; Secure) |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Seeded admin account (created once at startup) |

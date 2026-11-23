@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { authClient } from '@/lib/auth-client';
+import { Avatar } from '@/components/Avatar';
+import { Logo } from '@/components/Logo';
 import type { AppUser } from '@/lib/types';
 
 export default function Navbar() {
@@ -32,9 +34,7 @@ export default function Navbar() {
   return (
     <nav className="border-b border-neutral-200 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/" className="text-2xl font-bold tracking-tight text-neutral-900">
-          SalonBook
-        </Link>
+        <Logo />
         <div className="flex items-center gap-6 text-sm font-medium">
           <Link href="/services" className="text-neutral-600 transition hover:text-neutral-900">
             Services
@@ -58,9 +58,7 @@ export default function Navbar() {
                 aria-expanded={profileOpen}
                 className="flex items-center gap-2 rounded-full border border-neutral-300 px-4 py-1.5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50"
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-900 text-xs font-bold text-white">
-                  {user.name.slice(0, 2).toUpperCase()}
-                </span>
+                <Avatar name={user.name} image={user.image} size="sm" />
                 <span className="hidden sm:block">{user.name}</span>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                   <path d="m6 9 6 6 6-6" />

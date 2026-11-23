@@ -18,7 +18,11 @@ export default function SignInPage() {
     setLoading(true);
     try {
       const response = await authClient.signIn.email({ email, password });
-      const user = (response as { user?: { role?: string } } | null)?.user;
+      if (response.error) {
+        setError(response.error.message || 'Sign-in failed.');
+        return;
+      }
+      const user = response.data?.user as { role?: string } | null;
       router.push(user?.role === 'admin' ? '/admin' : '/customer/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Sign-in failed.');
@@ -33,7 +37,11 @@ export default function SignInPage() {
       // Return the browser to the frontend after Google — otherwise Better Auth
       // redirects to the backend root, which has no route (404 "Not found").
       const response = await authClient.signIn.social({ provider: 'google', callbackURL: window.location.origin });
-      const url = (response as { url?: string } | null)?.url;
+      if (response.error) {
+        setError(response.error.message || 'Google sign-in failed.');
+        return;
+      }
+      const url = response.data?.url;
       if (url) {
         window.location.assign(url);
       }

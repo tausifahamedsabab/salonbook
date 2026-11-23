@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import Link from 'next/link';
 import { api, uploadImage } from '@/lib/api';
+import { useSession } from '@/lib/session';
 import { useToast } from '@/lib/toast';
 import { PageLoading, Spinner } from '@/components/PageLoading';
 
@@ -20,6 +21,7 @@ interface ProfileData {
 /** Client-only: profile update form (name, phone, image upload or URL). */
 export function ProfileForm({ profile }: { profile: ProfileData }) {
   const { showToast } = useToast();
+  const { refetch } = useSession();
   const [name, setName] = useState(profile.name);
   const [phone, setPhone] = useState(profile.phone || '');
   const [imageUrl, setImageUrl] = useState(profile.image || '');
@@ -48,6 +50,8 @@ export function ProfileForm({ profile }: { profile: ProfileData }) {
         setPhone(res.profile.phone || '');
         setImageUrl(res.profile.image || '');
       }
+      // Refresh the Better Auth session so navbar/sidebar avatars update immediately.
+      await refetch();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Update failed.';
       setError(message);

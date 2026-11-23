@@ -32,37 +32,39 @@ export default async function AdminCustomersPage() {
       {customers.length === 0 ? (
         <p className="mt-6 text-neutral-500">No customers yet.</p>
       ) : (
-        <table className="mt-6 w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-neutral-200 text-xs uppercase tracking-wide text-neutral-500">
-              <th className="py-3 pr-4">Name</th>
-              <th className="py-3 pr-4">Email</th>
-              <th className="py-3 pr-4 text-right">Appointments</th>
-              <th className="py-3 pr-4 text-right">Pending</th>
-              <th className="py-3 pr-4 text-right">Paid</th>
-              <th className="py-3 pr-4 text-right">Signed up</th>
-              <th className="py-3 pr-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {customers.map((c) => (
-              <tr key={c._id} className="border-b border-neutral-200">
-                <td className="py-3 pr-4 font-medium text-neutral-900">{c.name}</td>
-                <td className="py-3 pr-4 text-neutral-500">{c.email}</td>
-                <td className="py-3 pr-4 text-right">{c.appointmentCount}</td>
-                <td className="py-3 pr-4 text-right">{c.pendingCount}</td>
-                <td className="py-3 pr-4 text-right">{c.paidCount}</td>
-                <td className="py-3 pr-4 text-right text-neutral-500">{c.createdAt ? formatDateTime(c.createdAt) : '—'}</td>
-                <td className="py-3 pr-4 text-right">
-                  <div className="flex justify-end gap-2">
-                    <CustomerDetailsModal customer={c} />
-                    <BlockUserButton customer={c} />
-                  </div>
-                </td>
+        <div className="mt-6 overflow-x-auto rounded-xl border border-neutral-200 bg-white shadow-sm">
+          <table className="w-full min-w-[860px] text-left text-sm">
+            <thead>
+              <tr className="border-b border-neutral-200 bg-neutral-50/70 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                <th className="px-5 py-4">Name</th>
+                <th className="px-5 py-4">Email</th>
+                <th className="px-5 py-4 text-right">Appointments</th>
+                <th className="px-5 py-4 text-right">Pending</th>
+                <th className="px-5 py-4 text-right">Paid</th>
+                <th className="px-5 py-4 text-right">Signed up</th>
+                <th className="px-5 py-4 text-right">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {customers.map((c) => (
+                <tr key={c._id} className="border-b border-neutral-200 transition-colors hover:bg-neutral-50/60 last:border-0">
+                  <td className="px-5 py-4 align-middle font-medium text-neutral-900">{c.name}</td>
+                  <td className="px-5 py-4 align-middle text-neutral-500">{c.email}</td>
+                  <td className="px-5 py-4 text-right align-middle">{c.appointmentCount}</td>
+                  <td className="px-5 py-4 text-right align-middle">{c.pendingCount}</td>
+                  <td className="px-5 py-4 text-right align-middle">{c.paidCount}</td>
+                  <td className="whitespace-nowrap px-5 py-4 text-right align-middle text-neutral-500">{c.createdAt ? formatDateTime(c.createdAt) : '—'}</td>
+                  <td className="px-5 py-4 text-right align-middle">
+                    <div className="flex justify-end gap-2">
+                      <CustomerDetailsModal customer={c} />
+                      <BlockUserButton customer={c} />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </section>
   );

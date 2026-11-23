@@ -53,46 +53,48 @@ export function CustomerAppointments({ appointments: initial }: { appointments: 
       {appointments.length === 0 ? (
         <p className="mt-6 text-neutral-500">You have no appointments. Book one from the Services page.</p>
       ) : (
-        <table className="mt-6 w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-neutral-200 text-xs uppercase tracking-wide text-neutral-500">
-              <th className="py-3 pr-4">Service</th>
-              <th className="py-3 pr-4">Date &amp; time</th>
-              <th className="py-3 pr-4">Status</th>
-              <th className="py-3 pr-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {appointments.map((a) => (
-              <tr key={a._id} className="border-b border-neutral-200">
-                <td className="py-3 pr-4 font-medium text-neutral-900">{a.service?.name || a.serviceName}</td>
-                <td className="py-3 pr-4 text-neutral-500">{formatDateTime(a.appointmentDate)}</td>
-                <td className="py-3 pr-4"><StatusBadge status={a.status} /></td>
-                <td className="py-3 pr-4 text-right">
-                  <div className="flex justify-end gap-2">
-                    {a.status === 'confirmed' && (
-                      <button
-                        onClick={() => void pay(a._id)}
-                        className="rounded-full bg-emerald-600 px-4 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-500"
-                      >
-                        Pay now
-                      </button>
-                    )}
-                    {a.status === 'pending' && (
-                      <button
-                        onClick={() => void action(a._id, `/api/appointments/${a._id}/cancel`)}
-                        disabled={busyId === a._id}
-                        className="rounded-full border border-red-300 px-4 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-50 disabled:opacity-50"
-                      >
-                        Cancel
-                      </button>
-                    )}
-                  </div>
-                </td>
+        <div className="mt-6 overflow-x-auto rounded-xl border border-neutral-200">
+          <table className="w-full min-w-[600px] text-left text-sm">
+            <thead>
+              <tr className="border-b border-neutral-200 text-xs uppercase tracking-wide text-neutral-500">
+                <th className="py-3 pr-4">Service</th>
+                <th className="py-3 pr-4">Date &amp; time</th>
+                <th className="py-3 pr-4">Status</th>
+                <th className="py-3 pr-4 text-right">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {appointments.map((a) => (
+                <tr key={a._id} className="border-b border-neutral-200">
+                  <td className="py-3 pr-4 font-medium text-neutral-900">{a.service?.name || a.serviceName}</td>
+                  <td className="py-3 pr-4 text-neutral-500">{formatDateTime(a.appointmentDate)}</td>
+                  <td className="py-3 pr-4"><StatusBadge status={a.status} /></td>
+                  <td className="py-3 pr-4 text-right">
+                    <div className="flex justify-end gap-2">
+                      {a.status === 'confirmed' && (
+                        <button
+                          onClick={() => void pay(a._id)}
+                          className="rounded-full bg-emerald-600 px-4 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-500"
+                        >
+                          Pay now
+                        </button>
+                      )}
+                      {a.status === 'pending' && (
+                        <button
+                          onClick={() => void action(a._id, `/api/appointments/${a._id}/cancel`)}
+                          disabled={busyId === a._id}
+                          className="rounded-full border border-red-300 px-4 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-50 disabled:opacity-50"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </section>
   );

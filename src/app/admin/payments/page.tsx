@@ -28,36 +28,38 @@ export default async function AdminPaymentsPage() {
       {payments.length === 0 ? (
         <p className="mt-6 text-neutral-500">No payments yet.</p>
       ) : (
-        <table className="mt-6 w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-neutral-200 text-xs uppercase tracking-wide text-neutral-500">
-              <th className="py-3 pr-4">Customer</th>
-              <th className="py-3 pr-4">Related service</th>
-              <th className="py-3 pr-4">Appointment date</th>
-              <th className="py-3 pr-4 text-right">Amount</th>
-              <th className="py-3 pr-4 text-right">Currency</th>
-              <th className="py-3 pr-4 text-right">Status</th>
-              <th className="py-3 pr-4">Stripe session</th>
-              <th className="py-3 pr-4">Transaction date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {payments.map((p) => (
-              <tr key={p._id} className="border-b border-neutral-200">
-                <td className="py-3 pr-4 text-neutral-900">{p.customerId?.toString?.() || '—'}</td>
-                <td className="py-3 pr-4 text-neutral-900">{p.service || '—'}</td>
-                <td className="py-3 pr-4 text-neutral-500">
-                  {formatDateTime(p.appointmentDate || p.createdAt)}
-                </td>
-                <td className="py-3 pr-4 text-right font-semibold text-neutral-900">{formatMoney(p.amount)}</td>
-                <td className="py-3 pr-4 text-right text-neutral-500">{(p.currency || 'usd').toUpperCase()}</td>
-                <td className="py-3 pr-4 text-right"><StatusBadge status={p.status} /></td>
-                <td className="py-3 pr-4 text-xs text-neutral-500">{shortSessionId(p.stripeSessionId)}</td>
-                <td className="py-3 pr-4 text-neutral-500">{formatDateTime(p.createdAt)}</td>
+        <div className="mt-6 overflow-x-auto rounded-xl border border-neutral-200">
+          <table className="w-full min-w-[900px] text-left text-sm">
+            <thead>
+              <tr className="border-b border-neutral-200 text-xs uppercase tracking-wide text-neutral-500">
+                <th className="py-3 pr-4">Customer</th>
+                <th className="py-3 pr-4">Related service</th>
+                <th className="py-3 pr-4">Appointment date</th>
+                <th className="py-3 pr-4 text-right">Amount</th>
+                <th className="py-3 pr-4 text-right">Currency</th>
+                <th className="py-3 pr-4 text-right">Status</th>
+                <th className="py-3 pr-4">Stripe session</th>
+                <th className="py-3 pr-4">Transaction date</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {payments.map((p) => (
+                <tr key={p._id} className="border-b border-neutral-200">
+                  <td className="py-3 pr-4 text-neutral-900">{p.customerId?.toString?.() || '—'}</td>
+                  <td className="py-3 pr-4 text-neutral-900">{p.service || '—'}</td>
+                  <td className="py-3 pr-4 text-neutral-500">
+                    {formatDateTime(p.appointmentDate || p.createdAt)}
+                  </td>
+                  <td className="py-3 pr-4 text-right font-semibold text-neutral-900">{formatMoney(p.amount)}</td>
+                  <td className="py-3 pr-4 text-right text-neutral-500">{(p.currency || 'usd').toUpperCase()}</td>
+                  <td className="py-3 pr-4 text-right"><StatusBadge status={p.status} /></td>
+                  <td className="py-3 pr-4 text-xs text-neutral-500">{shortSessionId(p.stripeSessionId)}</td>
+                  <td className="py-3 pr-4 text-neutral-500">{formatDateTime(p.createdAt)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </section>
   );

@@ -47,32 +47,34 @@ export function AdminServicesControls({ services: initial }: { services: Service
           ))}
         </select>
       </div>
-      <table className="mt-6 w-full text-left text-sm">
-        <thead>
-          <tr className="border-b border-neutral-200 text-xs uppercase tracking-wide text-neutral-500">
-            <th className="py-3 pr-4">Name</th>
-            <th className="py-3 pr-4">Category</th>
-            <th className="py-3 pr-4 text-right">Price</th>
-            <th className="py-3 pr-4 text-right">Duration</th>
-            <th className="py-3 pr-4 text-right">Status</th>
-            <th className="py-3 pr-4 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {services.map((s) => (
-            <tr key={s._id} className="border-b border-neutral-200">
-              <td className="py-3 pr-4 font-medium text-neutral-900">{s.name}</td>
-              <td className="py-3 pr-4 text-neutral-500">{s.category}</td>
-              <td className="py-3 pr-4 text-right font-semibold text-neutral-900">{formatMoney(s.price)}</td>
-              <td className="py-3 pr-4 text-right text-neutral-500">{s.duration ? `${s.duration} min` : '—'}</td>
-              <td className="py-3 pr-4 text-right">{s.status !== 'inactive' ? 'Active' : 'Inactive'}</td>
-              <td className="py-3 pr-4 text-right">
-                <ServiceRowActions service={s} />
-              </td>
+      <div className="mt-6 overflow-x-auto rounded-xl border border-neutral-200">
+        <table className="w-full min-w-[640px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-neutral-200 text-xs uppercase tracking-wide text-neutral-500">
+              <th className="py-3 pr-4">Name</th>
+              <th className="py-3 pr-4">Category</th>
+              <th className="py-3 pr-4 text-right">Price</th>
+              <th className="py-3 pr-4 text-right">Duration</th>
+              <th className="py-3 pr-4 text-right">Status</th>
+              <th className="py-3 pr-4 text-right">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {services.map((s) => (
+              <tr key={s._id} className="border-b border-neutral-200">
+                <td className="py-3 pr-4 font-medium text-neutral-900">{s.name}</td>
+                <td className="py-3 pr-4 text-neutral-500">{s.category}</td>
+                <td className="py-3 pr-4 text-right font-semibold text-neutral-900">{formatMoney(s.price)}</td>
+                <td className="py-3 pr-4 text-right text-neutral-500">{s.duration ? `${s.duration} min` : '—'}</td>
+                <td className="py-3 pr-4 text-right">{s.status !== 'inactive' ? 'Active' : 'Inactive'}</td>
+                <td className="py-3 pr-4 text-right">
+                  <ServiceRowActions service={s} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       {services.length === 0 && <p className="mt-4 text-neutral-500">No services match.</p>}
     </div>
   );
